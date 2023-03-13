@@ -1,9 +1,12 @@
 using System.Reflection;
 using System.Text.Json;
+using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Services;
 using ISIvanti.Server.Utilities;
+using IvantiToAdmins.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 var file = File.ReadAllText(Path.Join(directory, "_Configuration.json"));
@@ -36,6 +39,10 @@ var builder = WebApplication.CreateBuilder(args);
 #endif
     });
 }
+
+builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite("Data Source=_Database.db"));
+builder.Services.AddDbContext<IvantiDataContext>(options =>
+    options.UseSqlServer("Server=.;Database=SecurityControls;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;"));
 
 // Add services to the container.
 
