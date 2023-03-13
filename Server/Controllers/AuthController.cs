@@ -31,7 +31,7 @@ public class AuthController : ControllerBase
                     new ClaimsPrincipal(result.Item2), result.Item3);
                 return Ok("Success");
         }
-        return Unauthorized("Token or User is invalid.");
+        return Unauthorized("Invalid or unprivileged access.");
     }
 
     [HttpGet("Profile"), Authorize]

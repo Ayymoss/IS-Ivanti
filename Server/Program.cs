@@ -44,16 +44,6 @@ builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite("Da
 builder.Services.AddDbContext<IvantiDataContext>(options =>
     options.UseSqlServer("Server=.;Database=SecurityControls;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;"));
 
-// Add services to the container.
-
-builder.Services.AddLogging();
-builder.Services.AddSignalR();
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
-builder.Services.AddSwaggerGen();
-
-builder.Logging.ClearProviders().AddConsole();
-
 // Singletons
 builder.Services.AddSingleton(configuration);
 builder.Services.AddSingleton<StringEncryption>();
@@ -64,10 +54,18 @@ builder.Services.AddScoped<IIvantiDatabaseService, IvantiDatabaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<UserManager>();
 
+// Add services to the container.
+builder.Services.AddLogging();
+builder.Services.AddSignalR();
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+builder.Services.AddSwaggerGen();
+builder.Logging.ClearProviders().AddConsole();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(opt =>
     {
-        opt.Cookie.Name = "BanHubAccount";
+        opt.Cookie.Name = "ISIAccount";
 #if DEBUG
         opt.LogoutPath = "/";
         opt.LoginPath = "/";
