@@ -1,4 +1,4 @@
-﻿namespace ISIvanti.Server.Dtos;
+﻿namespace ISIvanti.Shared.Dtos;
 
 public class PaginationDto
 {

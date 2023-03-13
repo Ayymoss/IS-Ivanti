@@ -3,6 +3,7 @@ using System.Text.Json;
 using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Services;
+using ISIvanti.Server.Services.Pages;
 using ISIvanti.Server.Utilities;
 using IvantiToAdmins.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -50,7 +51,7 @@ builder.Services.AddSingleton<StringEncryption>();
 
 // Scoped
 builder.Services.AddScoped<ApiClient>();
-builder.Services.AddScoped<IIvantiDatabaseService, IvantiDatabaseService>();
+builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<UserManager>();
 

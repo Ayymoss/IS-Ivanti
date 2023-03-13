@@ -1,4 +1,4 @@
-﻿namespace ISIvanti.Shared.Dtos;
+﻿namespace ISIvanti.Shared.Dtos.Account;
 
 public class UserDto
 {

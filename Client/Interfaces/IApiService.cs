@@ -1,4 +1,5 @@
 ﻿using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 
 namespace ISIvanti.Client.Interfaces;
 

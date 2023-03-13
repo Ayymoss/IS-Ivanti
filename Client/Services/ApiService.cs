@@ -2,6 +2,7 @@
 using System.Text.Json;
 using ISIvanti.Client.Interfaces;
 using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 
 namespace ISIvanti.Client.Services;
 

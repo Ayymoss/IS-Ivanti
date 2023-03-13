@@ -1,0 +1,131 @@
+﻿@page "/Agents"
+@inject IDialogService DialogService
+@inject AgentService AgentService
+
+<PageTitle>Agents</PageTitle>
+
+<MudStack Spacing="0">
+    <MudPaper Elevation="2" Class="d-flex flex-row justify-content-between align-center pa-4 rounded-b-0">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mud-text-secondary">Agents</MudText>
+        <MudElement Class="ml-2 mt-0">
+            <MudTextField T="string"
+                          Placeholder="Filter"
+                          Variant="Variant.Outlined"
+                          ValueChanged="OnSearch"
+                          AutoFocus="false"
+                          Adornment="Adornment.End"
+                          Margin="Margin.Dense"
+                          AdornmentIcon="@Icons.Material.Filled.Search"/>
+        </MudElement>
+    </MudPaper>
+    <MudTable Striped="true"
+              HeaderClass="mud-theme-info"
+              Outlined="false"
+              Bordered="false"
+              OnRowClick="AgentRowClickEvent"
+              T="AgentDto"
+              ServerData="@(new Func<TableState, Task<TableData<AgentDto>>>(ServerReload))"
+              Elevation="2"
+              RowsPerPage="20"
+              Dense="true"
+              @ref="_table">
+        <HeaderContent>
+            <MudTh Class="py-2">
+                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Id" T="AgentDto">ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="UserName" T="AgentDto">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Action" T="AgentDto">Group</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="LastUpdated" T="AgentDto">Last Updated</MudTableSortLabel>
+            </MudTh>
+            <MudTh>Health</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.MachineId</MudTd>
+            <MudTd DataLabel="Name">@context.MachineName</MudTd>
+            <MudTd DataLabel="AssignedGroup">@context.AssignedGroup</MudTd>
+            <MudTd DataLabel="LastUpdated">@context.LastUpdated.Humanize()</MudTd>
+            <MudTd DataLabel="Health">
+                <MudProgressLinear Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
+                    <MudText Typo="Typo.caption" Color="Color.Dark">
+                        @string.Format($"{context.PatchesInstalledPercentage:N}%")
+                    </MudText>
+                </MudProgressLinear>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Class="mb-8" Color="Color.Warning">No agents found.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new[] {50, 100}"/>
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+
+@code {
+    private MudTable<AgentDto>? _table;
+    private string? _searchString;
+    private IEnumerable<AgentDto>? _pagedData;
+    private int _totalItems;
+
+    private async Task<TableData<AgentDto>> ServerReload(TableState state)
+    {
+        var paginationQuery = new PaginationDto
+        {
+            Page = state.Page,
+            PageSize = state.PageSize,
+            SortLabel = state.SortLabel,
+            SortDirection = (int)state.SortDirection,
+            SearchString = _searchString,
+        };
+
+        var result = await AgentService.PostAgentPagination(paginationQuery);
+        _pagedData = result.ToArray();
+        _totalItems = string.IsNullOrEmpty(_searchString) ? await AgentService.GetAgentCount() : _pagedData.Count();
+        return new TableData<AgentDto> {TotalItems = _totalItems, Items = _pagedData};
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        _table!.ReloadServerData();
+    }
+
+    private static Color ProgressColor(float number)
+    {
+        switch (number)
+        {
+            case < 25:
+                return Color.Error;
+            case < 50:
+                return Color.Warning;
+            case < 99:
+                return Color.Info;
+            case >= 99:
+                return Color.Success;
+        }
+        return Color.Default;
+    }
+
+    private async Task AgentRowClickEvent(TableRowClickEventArgs<AgentDto> clickEvent)
+    {
+        var parameters = new DialogParameters
+        {
+            {"Agent", clickEvent.Item},
+        };
+
+        var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Medium, CloseOnEscapeKey = true};
+        var onlineState = clickEvent.Item.LastUpdated + TimeSpan.FromHours(2) > DateTimeOffset.UtcNow;
+        var title = $"Actions for {clickEvent.Item.MachineName} - {(onlineState ? "Online" : "Offline")}";
+        await DialogService.ShowAsync<AgentOptions>(title, parameters, options);
+    }
+
+}

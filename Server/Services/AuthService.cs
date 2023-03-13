@@ -3,6 +3,7 @@ using ISIvanti.Server.Dtos;
 using ISIvanti.Server.Enums;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 using IvantiToAdmins.Context;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -29,12 +30,15 @@ public class AuthService : IAuthService
             Password = loginRequest.Password,
             Created = DateTimeOffset.UtcNow
         };
-        _userManager.AddUser(user);
+        _userManager.AddUser(user); // The memory of this object can be abused. But, since it's internal I don't think it matters.
 
-        var apiClient = _apiClient.GetIvantiApiAsync(new UserDto {UserName = user.UserName, Identity = user.Identity});
-        if (apiClient is null) return (ControllerEnums.ReturnState.Unauthorized, null, null)!;
-        var result = await apiClient.GetVersionAsync();
-        if (result is null) return (ControllerEnums.ReturnState.Unauthorized, null, null)!;
+        if (!Shared.Utilities.Utilities.IsDebugMode())
+        {
+            var apiClient = _apiClient.GetIvantiApiAsync(user.Identity);
+            if (apiClient is null) return (ControllerEnums.ReturnState.Unauthorized, null, null)!;
+            var result = await apiClient.GetVersionAsync();
+            if (result is null) return (ControllerEnums.ReturnState.Unauthorized, null, null)!;
+        }
 
         var claims = new List<Claim>
         {

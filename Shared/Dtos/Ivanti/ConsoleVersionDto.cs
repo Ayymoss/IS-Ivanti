@@ -1,4 +1,4 @@
-﻿namespace ISIvanti.Server.Dtos;
+﻿namespace ISIvanti.Shared.Dtos.Ivanti;
 
 public class ConsoleVersionDto
 {

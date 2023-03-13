@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace ISIvanti.Client.Providers;

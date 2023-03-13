@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 
 namespace ISIvanti.Server.Utilities;
 public class StringEncryption

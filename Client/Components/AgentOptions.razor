@@ -1,0 +1,113 @@
+﻿@inject ISnackbar SnackbarService
+@inject AgentService AgentService
+
+<MudDialog>
+    <DialogContent>
+        <MudElement Class="d-flex flex-column">
+            @if (_policies?.Count is 0)
+            {
+                <MudText>There are no policies for this computer.</MudText>
+            }
+            else
+            {
+                <MudList Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue">
+                    <MudListItem Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
+                    @foreach (var policy in _policies.OrderBy(x => x.TaskType))
+                    {
+                        <MudListItem Text="@($"({policy.TaskType}) {policy.TaskName}")" Value="@(policy.TaskId)"/>
+                    }
+                </MudList>
+            }
+        </MudElement>
+        <MudElement Class="d-flex flex-column mb-3">
+            <MudDivider FlexItem="true" DividerType="DividerType.Inset" Class="mx-n6 mb-4 mt-8"/>
+            <MudElement Class="d-flex">
+                <MudSpacer/>
+                <MudButton Class="flex-shrink-1" Variant="Variant.Text" Size="Size.Small" OnClick="ToggleOpen">Close</MudButton>
+                <MudButton Class="flex-shrink-1 ml-2"
+                           Disabled="@_processing"
+                           Variant="Variant.Outlined"
+                           Size="Size.Small"
+                           Color="Color.Error"
+                           ButtonType="ButtonType.Submit"
+                           OnClick="SendJob">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">Issuing...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Issue Job</MudText>
+                    }
+                </MudButton>
+            </MudElement>
+        </MudElement>
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public AgentDto Agent { get; set; } = null!;
+
+    private MudListItem? _selectedItem;
+    private object? _selectedValue;
+    private List<AgentPolicyDto>? _policies = new();
+    private bool _processing;
+
+    private void ToggleOpen() => MudDialog.Close();
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        //var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
+        //var identity = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        _policies = await AgentService.GetPoliciesAsync(Agent.MachineId);
+    }
+
+    private async Task SendJob()
+    {
+        if (_selectedValue is null) return;
+
+        _processing = true;
+        SnackbarService.Add("Job created! Please wait!", Severity.Info);
+
+        var action = new ActionDto
+        {
+            MachineId = Agent.MachineId,
+            AgentName = Agent.MachineName,
+            TaskId = (string)_selectedValue,
+            TaskName = _selectedItem.Text
+        };
+
+        if (_selectedValue as string is "CHECKIN")
+        {
+            var success = await AgentService.PostExecuteCheckInAsync(action);
+            if (!success)
+            {
+                SnackbarService.Add("Computer checkin failed!", Severity.Error);
+                _processing = false;
+                return;
+            }
+            SnackbarService.Add("Computer checkin successful!", Severity.Success);
+            _processing = false;
+            return;
+        }
+
+        var result = await AgentService.PostExecutePolicyAsync(action);
+
+        if (result is null || result.FailCode is not null)
+        {
+            SnackbarService.Add($"Job execution failed! {result?.FailCode ?? string.Empty}", Severity.Error);
+            _processing = false;
+            return;
+        }
+        SnackbarService.Add("Job executed successfully!", Severity.Success);
+        _processing = false;
+    }
+
+}

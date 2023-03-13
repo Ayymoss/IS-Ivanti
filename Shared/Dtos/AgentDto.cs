@@ -1,6 +1,6 @@
-﻿namespace ISIvanti.Server.Dtos;
+﻿namespace ISIvanti.Shared.Dtos;
 
-public class AgentNewDto
+public class AgentDto
 {
     public int MachineId { get; set; }
     public string? MachineName { get; set; }

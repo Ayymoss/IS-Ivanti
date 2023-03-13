@@ -2,6 +2,7 @@
 using ISIvanti.Server.Enums;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;

@@ -23,6 +23,8 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<CookieHandler>();
+builder.Services.AddSingleton<AgentService>();
+
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;

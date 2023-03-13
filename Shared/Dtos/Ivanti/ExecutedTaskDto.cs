@@ -1,4 +1,4 @@
-﻿namespace IvantiToAdmins.Dtos;
+﻿namespace ISIvanti.Shared.Dtos.Ivanti;
 
 public class ExecutedTaskDto
 {

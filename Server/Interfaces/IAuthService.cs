@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using ISIvanti.Server.Enums;
 using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Account;
 using Microsoft.AspNetCore.Authentication;
 
 namespace ISIvanti.Server.Interfaces;

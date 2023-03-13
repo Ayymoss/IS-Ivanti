@@ -1,4 +1,6 @@
-﻿namespace ISIvanti.Server.Dtos;
+﻿using ISIvanti.Shared.Enums;
+
+namespace ISIvanti.Shared.Dtos.Ivanti;
 
 public class AgentPolicyValueDto
 {
@@ -6,7 +8,7 @@ public class AgentPolicyValueDto
 }
 public class AgentPolicyDto
 {
-    public string? TaskId { get; set; }
+    public Guid TaskId { get; set; }
     public string? TaskName { get; set; }
-    public string? TaskType { get; set; }
+    public TaskType TaskType { get; set; }
 }

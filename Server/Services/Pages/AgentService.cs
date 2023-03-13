@@ -1,23 +1,26 @@
 ﻿using ISIvanti.Server.Context;
-using ISIvanti.Server.Dtos;
 using ISIvanti.Server.Interfaces;
+using ISIvanti.Server.Models.IvantiModels;
+using ISIvanti.Shared.Dtos;
+using ISIvanti.Shared.Dtos.Ivanti;
+using ISIvanti.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 
-namespace ISIvanti.Server.Services;
+namespace ISIvanti.Server.Services.Pages;
 
-public class IvantiDatabaseService : IIvantiDatabaseService
+public class AgentService : IAgentService
 {
     private readonly IvantiDataContext _ivantiContext;
 
-    public IvantiDatabaseService(IvantiDataContext ivantiContext)
+    public AgentService(IvantiDataContext ivantiContext)
     {
         _ivantiContext = ivantiContext;
     }
 
-    public async Task<int> AgentsCount() => await _ivantiContext.ManagedMachines.CountAsync();
+    public async Task<int> AgentsCountAsync() => await _ivantiContext.ManagedMachines.CountAsync();
 
-    public async Task<List<AgentNewDto>> PaginationAsync(PaginationDto pagination)
+    public async Task<List<AgentDto>> PaginationAsync(PaginationDto pagination)
     {
         var query = _ivantiContext.ManagedMachines.AsQueryable();
 
@@ -40,7 +43,7 @@ public class IvantiDatabaseService : IIvantiDatabaseService
         var machineData = await query
             .Skip(pagination.Page!.Value * pagination.PageSize!.Value)
             .Take(pagination.PageSize.Value)
-            .Select(profile => new AgentNewDto
+            .Select(profile => new AgentDto
             {
                 MachineId = profile.MmKey,
                 MachineName = profile.Name,
@@ -81,5 +84,35 @@ public class IvantiDatabaseService : IIvantiDatabaseService
         }
 
         return machineData;
+    }
+
+    public async Task<List<AgentPolicyDto>?> GetPoliciesAsync(int machineId)
+    {
+        var agent = await GetAgentIdAsync(machineId);
+        if (agent is null) return null;
+        
+        var agentPolicy = await _ivantiContext.Policies
+            .Where(x => x.Id == agent.AssignedPolicyId)
+            .FirstOrDefaultAsync();
+        if (agentPolicy is null) return null;
+        
+        var agentTasks = await _ivantiContext.Tasks
+            .Where(x => x.PolicyId == agentPolicy.Id)
+            .Select(x => new AgentPolicyDto
+            {
+                TaskId = x.Id,
+                TaskName = x.Name,
+                TaskType = (TaskType)x.Type
+            }).ToListAsync();
+
+        return agentTasks;
+    }
+
+    public async Task<Agent?> GetAgentIdAsync(int machineId)
+    {
+        var agent = await _ivantiContext.Agents
+            .Where(x => x.MachineId == machineId)
+            .FirstOrDefaultAsync();
+        return agent;
     }
 }
