@@ -9,60 +9,60 @@
 <PageTitle>Index</PageTitle>
 
 <MudStack Spacing="2">
-    @if (_authorised)
-    {
-        <MudPaper Class="pa-4">
-            <MudText>Logged in as: @_name</MudText>
-        </MudPaper>
-    }
-    else
-    {
-        <MudContainer MaxWidth="MaxWidth.Small">
+    <AuthorizeView>
+        <Authorized>
             <MudPaper Class="pa-4">
-                <MudElement>
-                    <MudText Align="Align.Center" Typo="Typo.h4">Login</MudText>
-                    <MudTextField @bind-Value="_login.UserName"
-                                  AutoFocus="false"
-                                  Immediate="true"
-                                  Label="User Name"
-                                  Variant="Variant.Text"
-                                  AdornmentIcon="@Icons.Material.Filled.Person"
-                                  Adornment="Adornment.End"
-                                  @onkeypress="OnKeyPress"
-                                  AdornmentColor="Color.Info"/>
-                    <MudTextField @bind-Value="_login.Password"
-                                  AutoFocus="false"
-                                  Immediate="true"
-                                  Label="Password"
-                                  Variant="Variant.Text"
-                                  InputType="@_passwordInput"
-                                  AdornmentIcon="@_passwordInputIcon"
-                                  Adornment="Adornment.End"
-                                  AdornmentColor="Color.Info"
-                                  @onkeypress="OnKeyPress"
-                                  OnAdornmentClick="ButtonPassword"
-                                  AdornmentAriaLabel="Show Password"/>
-                </MudElement>
-                <MudElement Class="d-flex mt-4">
-                    <MudButton Disabled="@_processing" Color="Color.Tertiary" Variant="Variant.Filled" ButtonType="ButtonType.Submit" OnClick="UserLogin">
-                        @if (_processing)
-                        {
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                            <MudText Class="ms-2">Logging in...</MudText>
-                        }
-                        else
-                        {
-                            <MudText>Log In</MudText>
-                        }
-                    </MudButton>
-                    @if (!string.IsNullOrEmpty(_error))
-                    {
-                        <MudText Class="align-self-center ml-2" Align="Align.Left" Color="Color.Warning" Typo="Typo.body1">Error: @_error</MudText>
-                    }
-                </MudElement>
+                <MudText>Logged in as: @_name</MudText>
             </MudPaper>
-        </MudContainer>
-    }
+        </Authorized>
+        <NotAuthorized>
+            <MudContainer MaxWidth="MaxWidth.Small">
+                <MudPaper Class="pa-4">
+                    <MudElement>
+                        <MudText Align="Align.Center" Typo="Typo.h4">Login</MudText>
+                        <MudTextField @bind-Value="_login.UserName"
+                                      AutoFocus="false"
+                                      Immediate="true"
+                                      Label="User Name"
+                                      Variant="Variant.Text"
+                                      AdornmentIcon="@Icons.Material.Filled.Person"
+                                      Adornment="Adornment.End"
+                                      @onkeypress="OnKeyPress"
+                                      AdornmentColor="Color.Info"/>
+                        <MudTextField @bind-Value="_login.Password"
+                                      AutoFocus="false"
+                                      Immediate="true"
+                                      Label="Password"
+                                      Variant="Variant.Text"
+                                      InputType="@_passwordInput"
+                                      AdornmentIcon="@_passwordInputIcon"
+                                      Adornment="Adornment.End"
+                                      AdornmentColor="Color.Info"
+                                      @onkeypress="OnKeyPress"
+                                      OnAdornmentClick="ButtonPassword"
+                                      AdornmentAriaLabel="Show Password"/>
+                    </MudElement>
+                    <MudElement Class="d-flex mt-4">
+                        <MudButton Disabled="@_processing" Color="Color.Tertiary" Variant="Variant.Filled" ButtonType="ButtonType.Submit" OnClick="UserLogin">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                                <MudText Class="ms-2">Logging in...</MudText>
+                            }
+                            else
+                            {
+                                <MudText>Log In</MudText>
+                            }
+                        </MudButton>
+                        @if (!string.IsNullOrEmpty(_error))
+                        {
+                            <MudText Class="align-self-center ml-2" Align="Align.Left" Color="Color.Warning" Typo="Typo.body1">Error: @_error</MudText>
+                        }
+                    </MudElement>
+                </MudPaper>
+            </MudContainer>
+        </NotAuthorized>
+    </AuthorizeView>
 </MudStack>
 
 
@@ -128,6 +128,7 @@
             return;
         }
 
+        _processing = true;
         var message = await ApiLogic.LoginAsync(_login);
         if (message == "Success")
         {
