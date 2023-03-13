@@ -1,0 +1,47 @@
+﻿@inject ILocalStorageService LocalStorageService;
+@inject IApiService ApiLogic
+@inject AuthenticationStateProvider AuthStateProvider
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="OnNavigateAsync">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+        </Found>
+        <NotFound>
+            <PageTitle>Not Found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <MudText Typo="Typo.h4" Color="Color.Info">404 :(</MudText>
+                <MudText Typo="Typo.h5" Color="Color.Error">Whoops, there's nothing here!</MudText>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+@code{
+
+    private async Task OnNavigateAsync(NavigationContext args)
+    {
+        var auth = await LocalStorageService.GetItemAsync<string>("IsAuthenticated");
+        var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
+
+        if (!string.IsNullOrEmpty(auth) && !user.Identity!.IsAuthenticated)
+        {
+            var response = await ApiLogic.UserProfileAsync();
+            switch (response.Item1)
+            {
+                case "Success":
+                    (AuthStateProvider as CustomAuthStateProvider)?.SetAuthInfo(response.Item2!);
+                    break;
+                case "Unauthorized":
+                    await LocalStorageService.RemoveItemAsync("IsAuthenticated");
+                    break;
+                case "Failed":
+                    (AuthStateProvider as CustomAuthStateProvider)?.ClearAuthInfo();
+                    await LocalStorageService.RemoveItemAsync("IsAuthenticated");
+                    break;
+            }
+        }
+    }
+
+}

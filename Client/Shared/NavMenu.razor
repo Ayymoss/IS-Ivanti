@@ -1,0 +1,37 @@
+﻿@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudPaper Class="d-flex flex-column" Height="100%" Elevation="0">
+    <MudNavMenu Rounded="true" Margin="Margin.Normal" Color="Color.Info" Class="pa-2">
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <AuthorizeView>
+            <Authorized>
+                <MudNavLink Href="/Agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Agents</MudNavLink>
+                <MudNavLink Href="/Auditing" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Search">Auditing</MudNavLink>
+            </Authorized>
+        </AuthorizeView>
+        <MudNavLink Href="/Test" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Search">Test</MudNavLink>
+        <MudNavLink Href="/AgentsNew" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Search">Agent Test</MudNavLink>
+    </MudNavMenu>
+    <MudSpacer/>
+    <MudStack Spacing="0">
+        <MudDivider Class="my-2" FlexItem="true" Light="true" DividerType="DividerType.Middle"/>
+        <MudText Align="Align.Center" Typo="Typo.subtitle2" Class="mb-2">Ideal Standard &copy; 2023</MudText>
+        <MudText Align="Align.Center" Typo="Typo.caption" Class="mb-2">Developed by Ryan Amos</MudText>
+        <MudDivider Class="mb-1" FlexItem="true" Light="true" DividerType="DividerType.FullWidth"/>
+        <MudElement Class="d-inline-flex align-center mx-2 mb-1">
+            <MudElement>
+                <MudText Typo="Typo.caption" Class="mud-text-disabled">ISIvanti</MudText>
+            </MudElement>
+            <MudSpacer/>
+            <MudElement>
+                <MudText Typo="Typo.caption" Class="mud-text-disabled">@_versionNumber</MudText>
+            </MudElement>
+        </MudElement>
+    </MudStack>
+
+</MudPaper>
+
+@code {
+    private string _versionNumber = Utilities.GetVersionAsString();
+}

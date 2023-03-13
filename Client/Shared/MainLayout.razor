@@ -1,0 +1,62 @@
+﻿@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILocalStorageService LocalStorageService
+@inject IApiService ApiLogic
+
+@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="false" Theme="_theme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+<MudBreakpointProvider/>
+
+<MudLayout>
+    <MudAppBar Elevation="2" Dense="true" Class="d-flex">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
+        <MudText Typo="Typo.h5" Class="ml-3">ISIvanti</MudText>
+        <MudSpacer/>
+        <MudIconButton Class="mr-2" Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Ayymoss/ISIvanti" Target="_blank"/>
+        @if (_user is not null)
+        {
+            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Size="Size.Small" OnClick="Logout" Color="Color.Error">@_user</MudButton>
+        }
+        else
+        {
+            <MudText>Not logged in...</MudText>
+        }
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-4 pt-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private readonly MudTheme _theme = Theme.Theme.Primary();
+    private bool _drawerOpen = true;
+    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
+    private string? _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
+        _user = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+    }
+
+
+    private async Task Logout()
+    {
+        var response = await ApiLogic.LogoutAsync();
+        if (response == "Success")
+        {
+            (AuthStateProvider as CustomAuthStateProvider)?.ClearAuthInfo();
+            await LocalStorageService.RemoveItemAsync("IsAuthenticated");
+            NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        }
+    }
+
+}
