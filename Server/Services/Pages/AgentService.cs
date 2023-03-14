@@ -35,7 +35,7 @@ public class AgentService : IAgentService
         {
             "Id" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.MmKey),
             "Name" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.Name),
-            "AssignedGroup" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.AssignedGroup),
+            "Group" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.AssignedGroup),
             "LastUpdated" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.LastUpdated),
             _ => query
         };
@@ -90,12 +90,12 @@ public class AgentService : IAgentService
     {
         var agent = await GetAgentIdAsync(machineId);
         if (agent is null) return null;
-        
+
         var agentPolicy = await _ivantiContext.Policies
             .Where(x => x.Id == agent.AssignedPolicyId)
             .FirstOrDefaultAsync();
         if (agentPolicy is null) return null;
-        
+
         var agentTasks = await _ivantiContext.Tasks
             .Where(x => x.PolicyId == agentPolicy.Id)
             .Select(x => new AgentPolicyDto

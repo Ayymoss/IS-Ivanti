@@ -3,6 +3,7 @@ using System.Text.Json;
 using ISIvanti.Client.Interfaces.REST;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
+using ISIvanti.Shared.Utilities;
 using RestEase;
 
 namespace ISIvanti.Client.Services;
@@ -10,7 +11,7 @@ namespace ISIvanti.Client.Services;
 public class AgentService
 {
 #if DEBUG
-    private const string ApiHost = "/api";
+    private const string ApiHost = "https://localhost:8123/api";
 #else
     private const string ApiHost = "/api";
 #endif
@@ -27,13 +28,12 @@ public class AgentService
         try
         {
             var response = await _api.GetAgentPaginationAsync(pagination);
-            if (!response.IsSuccessStatusCode) return new List<AgentDto>();
-            var result = await response.Content.ReadFromJsonAsync<List<AgentDto>>();
+            var result = await response.DeserializeHttpResponseContentAsync<List<AgentDto>>();
             return result ?? new List<AgentDto>();
         }
         catch (ApiException e)
         {
-            Console.WriteLine($"Failed to get agent pagination: {e.Message}");
+            Console.WriteLine($"API->Failed to get agent pagination: {e.Message}");
         }
 
         return new List<AgentDto>();
@@ -50,24 +50,23 @@ public class AgentService
         }
         catch (ApiException e)
         {
-            Console.WriteLine($"Failed to get agent count: {e.Message}");
+            Console.WriteLine($"API->Failed to get agent count: {e.Message}");
         }
 
         return 0;
     }
-    
+
     public async Task<ExecutedTaskDto?> PostExecutePolicyAsync(ActionDto action)
     {
         try
         {
             var response = await _api.PostExecutePolicyAsync(action);
-            if (!response.IsSuccessStatusCode) return new ExecutedTaskDto();
-            var result = await response.Content.ReadFromJsonAsync<ExecutedTaskDto>();
+            var result = await response.DeserializeHttpResponseContentAsync<ExecutedTaskDto>();
             return result ?? new ExecutedTaskDto();
         }
         catch (ApiException e)
         {
-            Console.WriteLine($"Failed to execute agent policy: {e.Message}");
+            Console.WriteLine($"API->Failed to execute agent policy: {e.Message}");
         }
 
         return new ExecutedTaskDto();
@@ -89,19 +88,18 @@ public class AgentService
 
         return false;
     }
-    
+
     public async Task<List<AgentPolicyDto>> GetPoliciesAsync(int machineId)
     {
         try
         {
             var response = await _api.GetPoliciesAsync(machineId);
-            if (!response.IsSuccessStatusCode) return new List<AgentPolicyDto>();
-            var result = await response.Content.ReadFromJsonAsync<List<AgentPolicyDto>>();
+            var result = await response.DeserializeHttpResponseContentAsync<List<AgentPolicyDto>>();
             return result ?? new List<AgentPolicyDto>();
         }
         catch (ApiException e)
         {
-            Console.WriteLine($"Failed to execute agent checkin: {e.Message}");
+            Console.WriteLine($"API->Failed to execute agent checkin: {e.Message}");
         }
 
         return new List<AgentPolicyDto>();

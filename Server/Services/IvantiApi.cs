@@ -2,6 +2,7 @@
 using ISIvanti.Server.Utilities;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
+using ISIvanti.Shared.Utilities;
 using RestEase;
 
 namespace ISIvanti.Server.Services;

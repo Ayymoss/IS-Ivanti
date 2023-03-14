@@ -46,7 +46,7 @@ public class AgentController : ControllerBase
     {
         var agentId = await _agentService.GetAgentIdAsync(action.MachineId);
         action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
-        
+
         var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
         return Ok(await api.PostExecutePolicyAsync(action));
@@ -55,6 +55,9 @@ public class AgentController : ControllerBase
     [HttpPost("ExecuteCheckIn")]
     public async Task<ActionResult<bool>> PostExecuteCheckInAsync([FromBody] ActionDto action)
     {
+        var agentId = await _agentService.GetAgentIdAsync(action.MachineId);
+        action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
+
         var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
         return Ok(await api.PostExecuteCheckInAsync(action));

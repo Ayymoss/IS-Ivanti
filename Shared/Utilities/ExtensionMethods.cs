@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace ISIvanti.Server.Utilities;
+namespace ISIvanti.Shared.Utilities;
 
 public static class ExtensionMethods
 {

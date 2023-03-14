@@ -22,6 +22,8 @@
               HeaderClass="mud-theme-info"
               Outlined="false"
               Bordered="false"
+              Loading="_loading"
+              LoadingProgressColor="Color.Info"
               OnRowClick="AgentRowClickEvent"
               T="AgentDto"
               ServerData="@(new Func<TableState, Task<TableData<AgentDto>>>(ServerReload))"
@@ -34,15 +36,17 @@
                 <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Id" T="AgentDto">ID</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="UserName" T="AgentDto">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Action" T="AgentDto">Group</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Group" T="AgentDto">Group</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="LastUpdated" T="AgentDto">Last Updated</MudTableSortLabel>
             </MudTh>
-            <MudTh>Health</MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="PatchesMissing" T="AgentDto">Health</MudTableSortLabel>
+            </MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Id">@context.MachineId</MudTd>
@@ -51,9 +55,7 @@
             <MudTd DataLabel="LastUpdated">@context.LastUpdated.Humanize()</MudTd>
             <MudTd DataLabel="Health">
                 <MudProgressLinear Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
-                    <MudText Typo="Typo.caption" Color="Color.Dark">
-                        @string.Format($"{context.PatchesInstalledPercentage:N}%")
-                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Dark">@Math.Ceiling(context.PatchesInstalledPercentage)%</MudText>
                 </MudProgressLinear>
             </MudTd>
         </RowTemplate>
@@ -75,6 +77,7 @@
     private string? _searchString;
     private IEnumerable<AgentDto>? _pagedData;
     private int _totalItems;
+    private bool _loading = true;
 
     private async Task<TableData<AgentDto>> ServerReload(TableState state)
     {
@@ -89,7 +92,8 @@
 
         var result = await AgentService.PostAgentPagination(paginationQuery);
         _pagedData = result.ToArray();
-        _totalItems = string.IsNullOrEmpty(_searchString) ? await AgentService.GetAgentCount() : _pagedData.Count();
+        _totalItems = _totalItems is not 0 ? _totalItems : await AgentService.GetAgentCount();
+        _loading = false;
         return new TableData<AgentDto> {TotalItems = _totalItems, Items = _pagedData};
     }
 
