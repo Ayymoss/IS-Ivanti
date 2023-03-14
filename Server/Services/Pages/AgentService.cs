@@ -22,66 +22,44 @@ public class AgentService : IAgentService
 
     public async Task<List<AgentDto>> PaginationAsync(PaginationDto pagination)
     {
-        var query = _ivantiContext.ManagedMachines.AsQueryable();
+        var query = _ivantiContext.ManagedMachines.GroupJoin(_ivantiContext.XtrCurrentPatchCounts,
+            machine => machine.MmKey,
+            patch => patch.Machineid,
+            (machine, patches) => new AgentDto
+            {
+                MachineId = machine.MmKey,
+                MachineName = machine.Name,
+                AssignedGroup = machine.AssignedGroup,
+                LastUpdated = machine.LastUpdated,
+                PatchesInstalled = patches.Sum(patch => patch.Installedcnt ?? 0),
+                PatchesMissing = patches.Sum(patch => patch.Notinstalledcnt ?? 0),
+                PatchesInstalledPercentage = patches.Any(patch => patch.Notinstalledcnt.HasValue && patch.Notinstalledcnt.Value > 0)
+                    ? patches.Sum(patch => patch.Installedcnt ?? 0) / (float)(patches.Sum(patch => patch.Installedcnt ?? 0) +
+                                                                              patches.Sum(patch => patch.Notinstalledcnt ?? 0)) * 100
+                    : 100
+            });
 
         if (!string.IsNullOrWhiteSpace(pagination.SearchString))
         {
             query = query.Where(search =>
-                EF.Functions.Like(search.Name, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.MachineName, $"%{pagination.SearchString}%") ||
                 EF.Functions.Like(search.AssignedGroup ?? "unknown", $"%{pagination.SearchString}%"));
         }
 
         query = pagination.SortLabel switch
         {
-            "Id" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.MmKey),
-            "Name" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.Name),
+            "Id" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.MachineId),
+            "Name" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.MachineName),
             "Group" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.AssignedGroup),
             "LastUpdated" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.LastUpdated),
+            "Percentage" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.PatchesInstalledPercentage),
             _ => query
         };
 
         var machineData = await query
             .Skip(pagination.Page!.Value * pagination.PageSize!.Value)
             .Take(pagination.PageSize.Value)
-            .Select(profile => new AgentDto
-            {
-                MachineId = profile.MmKey,
-                MachineName = profile.Name,
-                AssignedGroup = profile.AssignedGroup,
-                LastUpdated = profile.LastUpdated
-            }).ToListAsync();
-
-        var machineIds = machineData.Select(comp => comp.MachineId).ToList();
-
-        var pageData = await _ivantiContext.XtrCurrentPatchCounts
-            .Where(patch => machineIds.Contains(patch.Machineid.Value))
             .ToListAsync();
-
-        foreach (var machine in machineData)
-        {
-            foreach (var patch in pageData.Where(patch => machine.MachineId == patch.Machineid))
-            {
-                if (patch.Installedcnt.HasValue)
-                {
-                    machine.PatchesInstalled += patch.Installedcnt.Value;
-                }
-
-                if (patch.Notinstalledcnt.HasValue)
-                {
-                    machine.PatchesMissing += patch.Notinstalledcnt.Value;
-                }
-            }
-
-            if (machine.PatchesMissing == 0)
-            {
-                machine.PatchesInstalledPercentage = 100;
-            }
-            else
-            {
-                machine.PatchesInstalledPercentage =
-                    (float)machine.PatchesInstalled / (machine.PatchesInstalled + machine.PatchesMissing) * 100;
-            }
-        }
 
         return machineData;
     }
