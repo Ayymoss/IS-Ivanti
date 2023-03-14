@@ -20,25 +20,27 @@ public class AgentService : IAgentService
 
     public async Task<int> AgentsCountAsync() => await _ivantiContext.ManagedMachines.CountAsync();
 
-    public async Task<List<AgentDto>> PaginationAsync(PaginationDto pagination)
+    public async Task<AgentContextDto> PaginationAsync(PaginationDto pagination)
     {
-        var query = _ivantiContext.ManagedMachines.GroupJoin(_ivantiContext.XtrCurrentPatchCounts,
-            machine => machine.MmKey,
-            patch => patch.Machineid,
-            (machine, patches) => new AgentDto
-            {
-                MachineId = machine.MmKey,
-                MachineName = machine.Name,
-                AssignedGroup = machine.AssignedGroup,
-                LastUpdated = machine.LastUpdated,
-                PatchesInstalled = patches.Sum(patch => patch.Installedcnt ?? 0),
-                PatchesMissing = patches.Sum(patch => patch.Notinstalledcnt ?? 0),
-                PatchesInstalledPercentage = patches.Any(patch => patch.Notinstalledcnt.HasValue && patch.Notinstalledcnt.Value > 0)
-                    ? patches.Sum(patch => patch.Installedcnt ?? 0) / (float)(patches.Sum(patch => patch.Installedcnt ?? 0) +
-                                                                              patches.Sum(patch => patch.Notinstalledcnt ?? 0)) * 100
-                    : 100
-            });
-
+        var query = _ivantiContext.ManagedMachines
+            //.Where(machine => machine.LastUpdated >= DateTime.Today.AddDays(-30))
+            .GroupJoin(_ivantiContext.XtrCurrentPatchCounts,
+                machine => machine.MmKey,
+                patch => patch.Machineid,
+                (machine, patches) => new AgentDto
+                {
+                    MachineId = machine.MmKey,
+                    MachineName = machine.Name,
+                    AssignedGroup = machine.AssignedGroup,
+                    LastUpdated = machine.LastUpdated,
+                    PatchesInstalled = patches.Sum(patch => patch.Installedcnt ?? 0),
+                    PatchesMissing = patches.Sum(patch => patch.Notinstalledcnt ?? 0),
+                    PatchesInstalledPercentage = patches.Any(patch => patch.Notinstalledcnt.HasValue && patch.Notinstalledcnt.Value > 0)
+                        ? patches.Sum(patch => patch.Installedcnt ?? 0) / (float)(patches.Sum(patch => patch.Installedcnt ?? 0) +
+                                                                                  patches.Sum(patch => patch.Notinstalledcnt ?? 0)) * 100
+                        : 100
+                });
+        
         if (!string.IsNullOrWhiteSpace(pagination.SearchString))
         {
             query = query.Where(search =>
@@ -56,12 +58,18 @@ public class AgentService : IAgentService
             _ => query
         };
 
+        var dataSize = await query.CountAsync();
+
         var machineData = await query
             .Skip(pagination.Page!.Value * pagination.PageSize!.Value)
             .Take(pagination.PageSize.Value)
             .ToListAsync();
 
-        return machineData;
+        return new AgentContextDto
+        {
+            Count = dataSize,
+            Agents = machineData
+        };
     }
 
     public async Task<List<AgentPolicyDto>?> GetPoliciesAsync(int machineId)

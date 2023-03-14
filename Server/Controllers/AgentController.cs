@@ -24,7 +24,7 @@ public class AgentController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<IEnumerable<AgentDto>>> GetInstancesAsync([FromBody] PaginationDto pagination)
+    public async Task<ActionResult<AgentContextDto>> GetInstancesAsync([FromBody] PaginationDto pagination)
     {
         return Ok(await _agentService.PaginationAsync(pagination));
     }

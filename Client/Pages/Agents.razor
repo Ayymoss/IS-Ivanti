@@ -33,10 +33,7 @@
               @ref="_table">
         <HeaderContent>
             <MudTh Class="py-2">
-                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Id" T="AgentDto">ID</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
+                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Group" T="AgentDto">Group</MudTableSortLabel>
@@ -45,17 +42,16 @@
                 <MudTableSortLabel SortLabel="LastUpdated" T="AgentDto">Last Updated</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="PatchesMissing" T="AgentDto">Health</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Percentage" T="AgentDto">Health</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.MachineId</MudTd>
-            <MudTd DataLabel="Name">@context.MachineName</MudTd>
+            <MudTd DataLabel="Name">@context.MachineName.ToUpper()</MudTd>
             <MudTd DataLabel="AssignedGroup">@context.AssignedGroup</MudTd>
             <MudTd DataLabel="LastUpdated">@context.LastUpdated.Humanize()</MudTd>
             <MudTd DataLabel="Health">
                 <MudProgressLinear Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
-                    <MudText Typo="Typo.caption" Color="Color.Dark">@Math.Ceiling(context.PatchesInstalledPercentage)%</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Dark">@Math.Floor(context.PatchesInstalledPercentage)%</MudText>
                 </MudProgressLinear>
             </MudTd>
         </RowTemplate>
@@ -66,7 +62,7 @@
             <MudText>Loading...</MudText>
         </LoadingContent>
         <PagerContent>
-            <MudTablePager PageSizeOptions="new[] {50, 100}"/>
+            <MudTablePager PageSizeOptions="new[] {20, 50, 100}"/>
         </PagerContent>
     </MudTable>
 </MudStack>
@@ -91,8 +87,8 @@
         };
 
         var result = await AgentService.PostAgentPagination(paginationQuery);
-        _pagedData = result.ToArray();
-        _totalItems = _totalItems is not 0 ? _totalItems : await AgentService.GetAgentCount();
+        _pagedData = result.Agents?.ToArray();
+        _totalItems = result.Count;
         _loading = false;
         return new TableData<AgentDto> {TotalItems = _totalItems, Items = _pagedData};
     }
@@ -107,9 +103,9 @@
     {
         switch (number)
         {
-            case < 25:
-                return Color.Error;
             case < 50:
+                return Color.Error;
+            case < 90:
                 return Color.Warning;
             case < 99:
                 return Color.Info;

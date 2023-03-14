@@ -1,5 +1,11 @@
 ﻿namespace ISIvanti.Shared.Dtos;
 
+public class AgentContextDto
+{
+    public int Count { get; set; }
+    public List<AgentDto>? Agents { get; set; }
+}
+
 public class AgentDto
 {
     public int MachineId { get; set; }

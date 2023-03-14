@@ -23,20 +23,20 @@ public class AgentService
         _api = RestClient.For<IAgentService>(ApiHost);
     }
 
-    public async Task<List<AgentDto>> PostAgentPagination(PaginationDto pagination)
+    public async Task<AgentContextDto> PostAgentPagination(PaginationDto pagination)
     {
         try
         {
             var response = await _api.GetAgentPaginationAsync(pagination);
-            var result = await response.DeserializeHttpResponseContentAsync<List<AgentDto>>();
-            return result ?? new List<AgentDto>();
+            var result = await response.DeserializeHttpResponseContentAsync<AgentContextDto>();
+            return result ?? new AgentContextDto();
         }
         catch (ApiException e)
         {
             Console.WriteLine($"API->Failed to get agent pagination: {e.Message}");
         }
 
-        return new List<AgentDto>();
+        return new AgentContextDto();
     }
 
     public async Task<int> GetAgentCount()

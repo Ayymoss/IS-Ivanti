@@ -12,9 +12,11 @@
 <MudStack Spacing="2">
     <AuthorizeView>
         <Authorized>
-            <MudPaper Class="pa-4">
-                <MudText>Logged in as: @_name</MudText>
-            </MudPaper>
+            <MudContainer MaxWidth="MaxWidth.Small">
+                <MudPaper Class="pa-4">
+                    <MudText>Logged in as: @_name</MudText>
+                </MudPaper>
+            </MudContainer>
         </Authorized>
         <NotAuthorized>
             <MudContainer MaxWidth="MaxWidth.Small">
