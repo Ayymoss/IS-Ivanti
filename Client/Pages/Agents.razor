@@ -1,8 +1,9 @@
 ﻿@page "/Agents"
 @inject IDialogService DialogService
 @inject AgentService AgentService
+@attribute [Authorize]
 
-<PageTitle>Agents</PageTitle>
+<PageTitle>Agents | ISIvanti</PageTitle>
 
 <MudStack Spacing="0">
     <MudPaper Elevation="2" Class="d-flex flex-row justify-content-between align-center pa-4 rounded-b-0">

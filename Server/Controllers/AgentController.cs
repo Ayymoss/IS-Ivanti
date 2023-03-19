@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using ISIvanti.Server.Enums;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Services;
 using ISIvanti.Shared.Dtos;
@@ -24,9 +23,9 @@ public class AgentController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<AgentContextDto>> GetInstancesAsync([FromBody] PaginationDto pagination)
+    public async Task<ActionResult<AgentContextDto>> PostAgentPaginationAsync([FromBody] PaginationDto pagination)
     {
-        return Ok(await _agentService.PaginationAsync(pagination));
+        return Ok(await _agentService.AgentPaginationAsync(pagination));
     }
 
     [HttpGet]
@@ -61,5 +60,23 @@ public class AgentController : ControllerBase
         var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
         return Ok(await api.PostExecuteCheckInAsync(action));
+    }
+
+    [HttpPost("ExecuteJob")]
+    public async Task<ActionResult<string>> ExecuteJobAsync([FromBody] ActionDto action)
+    {
+        var adminUserName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (adminUserName is null || adminIdentity is null) return BadRequest("Admin user name not found.");
+        var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
+        if (api is null) return BadRequest("API client not found.");
+        var guid = await _agentService.SetupExecuteJob(action, api, adminUserName);
+        return Ok(guid.ToString() ?? "Job failed to start");
+    }
+    
+    [HttpPost("Jobs")]
+    public async Task<ActionResult<JobContextDto>> PostJobPaginationAsync([FromBody] PaginationDto pagination)
+    {
+        return Ok(await _agentService.JobPaginationAsync(pagination));
     }
 }

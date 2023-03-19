@@ -1,0 +1,109 @@
+﻿@page "/Jobs"
+@inject AgentService AgentService
+@attribute [Authorize]
+
+
+<PageTitle>Jobs | ISIvanti</PageTitle>
+
+
+<MudStack Spacing="0">
+    <MudPaper Elevation="2" Class="d-flex flex-row justify-content-between align-center pa-4 rounded-b-0">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mud-text-secondary">Jobs</MudText>
+        <MudElement Class="ml-2 mt-0">
+            <MudTextField T="string"
+                          Placeholder="Filter"
+                          Variant="Variant.Outlined"
+                          ValueChanged="OnSearch"
+                          AutoFocus="false"
+                          Adornment="Adornment.End"
+                          Margin="Margin.Dense"
+                          AdornmentIcon="@Icons.Material.Filled.Search"/>
+        </MudElement>
+    </MudPaper>
+    <MudTable Striped="true"
+              HeaderClass="mud-theme-info"
+              Outlined="false"
+              Bordered="false"
+              Loading="_loading"
+              LoadingProgressColor="Color.Info"
+              ServerData="@(new Func<TableState, Task<TableData<JobDto>>>(ServerReload))"
+              Elevation="2"
+              RowsPerPage="20"
+              Dense="true"
+              @ref="_table">
+        <HeaderContent>
+            <MudTh Class="py-2">
+                <MudTableSortLabel SortLabel="Id" T="JobDto">ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="UserName" T="JobDto">Username</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Target" T="JobDto">Target Machine</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Action" T="JobDto">Action</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel InitialDirection="SortDirection.Descending" SortLabel="Created" T="JobDto">Started</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Completed" T="JobDto">Completed</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="State" T="JobDto">State</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.Guid.ToString()[(context.Guid.ToString().LastIndexOf('-') + 1)..]</MudTd>
+            <MudTd DataLabel="UserName">@context.UserName</MudTd>
+            <MudTd DataLabel="Target">@context.AgentName</MudTd>
+            <MudTd DataLabel="Action">@context.TaskName</MudTd>
+            <MudTd DataLabel="Created">@context.Created?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="Completed">@context.Completed?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="State">@context.State</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Class="mb-8" Color="Color.Warning">No jobs found.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new[] {20, 50, 100}"/>
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+    private MudTable<JobDto>? _table;
+    private string? _searchString;
+    private IEnumerable<JobDto>? _pagedData;
+    private int _totalItems;
+    private bool _loading = true;
+
+    private async Task<TableData<JobDto>> ServerReload(TableState state)
+    {
+        var paginationQuery = new PaginationDto
+        {
+            Page = state.Page,
+            PageSize = state.PageSize,
+            SortLabel = state.SortLabel,
+            SortDirection = (int)state.SortDirection,
+            SearchString = _searchString,
+        };
+
+        var result = await AgentService.PostJobPagination(paginationQuery);
+        _pagedData = result.Jobs?.ToArray();
+        _totalItems = result.Count;
+        _loading = false;
+        return new TableData<JobDto> {TotalItems = _totalItems, Items = _pagedData};
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        _table!.ReloadServerData();
+    }
+
+}

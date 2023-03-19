@@ -66,9 +66,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
-        //var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
-        //var identity = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         _policies = await AgentService.GetPoliciesAsync(Agent.MachineId);
     }
 
@@ -80,38 +77,26 @@
         SnackbarService.Add("Job created! Please wait!", Severity.Info);
 
         Console.WriteLine($"{_selectedValue.GetType()} {_selectedValue}");
-        
+
         var action = new ActionDto
         {
             MachineId = Agent.MachineId,
             AgentName = Agent.MachineName,
             TaskId = _selectedValue.ToString(),
-            TaskName = _selectedItem.Text
+            TaskName = _selectedItem.Text,
+            TaskType = _selectedValue as string is "CHECKIN" ? TaskType.CheckIn : TaskType.Other
         };
 
-        if (_selectedValue as string is "CHECKIN")
+        var guid = await AgentService.PostExecuteJobAsync(action);
+
+        action.TaskType = TaskType.CheckIn;
+        if (guid is null)
         {
-            var success = await AgentService.PostExecuteCheckInAsync(action);
-            if (!success)
-            {
-                SnackbarService.Add("Computer checkin failed!", Severity.Error);
-                _processing = false;
-                return;
-            }
-            SnackbarService.Add("Computer checkin successful!", Severity.Success);
+            SnackbarService.Add("Job request failed!", Severity.Error);
             _processing = false;
             return;
         }
-
-        var result = await AgentService.PostExecutePolicyAsync(action);
-
-        if (result is null || result.FailCode is not null)
-        {
-            SnackbarService.Add($"Job execution failed! {result?.FailCode ?? string.Empty}", Severity.Error);
-            _processing = false;
-            return;
-        }
-        SnackbarService.Add("Job executed successfully!", Severity.Success);
+        SnackbarService.Add($"Job queued! ({guid})", Severity.Success);
         _processing = false;
     }
 

@@ -1,6 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
-using ISIvanti.Client.Interfaces.REST;
+using ISIvanti.Client.Interfaces;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Utilities;
@@ -27,7 +27,7 @@ public class AgentService
     {
         try
         {
-            var response = await _api.GetAgentPaginationAsync(pagination);
+            var response = await _api.PostAgentPaginationAsync(pagination);
             var result = await response.DeserializeHttpResponseContentAsync<AgentContextDto>();
             return result ?? new AgentContextDto();
         }
@@ -38,56 +38,23 @@ public class AgentService
 
         return new AgentContextDto();
     }
-
-    public async Task<int> GetAgentCount()
+    
+    public async Task<string?> PostExecuteJobAsync(ActionDto action)
     {
         try
         {
-            var response = await _api.GetAgentCountAsync();
-            if (!response.IsSuccessStatusCode) return 0;
-            var result = await response.Content.ReadAsStringAsync();
-            return int.TryParse(result, out var count) ? count : 0;
+            var response = await _api.PostExecuteJobAsync(action);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadAsStringAsync();
         }
         catch (ApiException e)
         {
-            Console.WriteLine($"API->Failed to get agent count: {e.Message}");
+            Console.WriteLine($"API->Failed to post job execution: {e.Message}");
         }
 
-        return 0;
+        return null;
     }
 
-    public async Task<ExecutedTaskDto?> PostExecutePolicyAsync(ActionDto action)
-    {
-        try
-        {
-            var response = await _api.PostExecutePolicyAsync(action);
-            var result = await response.DeserializeHttpResponseContentAsync<ExecutedTaskDto>();
-            return result ?? new ExecutedTaskDto();
-        }
-        catch (ApiException e)
-        {
-            Console.WriteLine($"API->Failed to execute agent policy: {e.Message}");
-        }
-
-        return new ExecutedTaskDto();
-    }
-
-    public async Task<bool> PostExecuteCheckInAsync(ActionDto action)
-    {
-        try
-        {
-            var response = await _api.PostExecuteCheckInAsync(action);
-            if (!response.IsSuccessStatusCode) return false;
-            var result = await response.Content.ReadAsStringAsync();
-            return bool.TryParse(result, out var state) && state;
-        }
-        catch (ApiException e)
-        {
-            Console.WriteLine($"Failed to execute agent checkin: {e.Message}");
-        }
-
-        return false;
-    }
 
     public async Task<List<AgentPolicyDto>> GetPoliciesAsync(int machineId)
     {
@@ -103,5 +70,21 @@ public class AgentService
         }
 
         return new List<AgentPolicyDto>();
+    }
+
+    public async Task<JobContextDto> PostJobPagination(PaginationDto pagination)
+    {
+        try
+        {
+            var response = await _api.PostJobPaginationAsync(pagination);
+            var result = await response.DeserializeHttpResponseContentAsync<JobContextDto>();
+            return result ?? new JobContextDto();
+        }
+        catch (ApiException e)
+        {
+            Console.WriteLine($"API->Failed to get job pagination: {e.Message}");
+        }
+
+        return new JobContextDto();
     }
 }

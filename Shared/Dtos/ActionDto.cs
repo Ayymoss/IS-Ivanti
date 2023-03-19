@@ -1,4 +1,6 @@
-﻿namespace ISIvanti.Shared.Dtos;
+﻿using ISIvanti.Shared.Enums;
+
+namespace ISIvanti.Shared.Dtos;
 
 public class ActionDto
 {
@@ -7,4 +9,5 @@ public class ActionDto
     public string? AgentName { get; set; }
     public string? TaskId { get; set; }
     public string? TaskName { get; set; }
+    public TaskType TaskType { get; set; }
 }
