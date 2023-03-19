@@ -28,38 +28,11 @@ public class AgentController : ControllerBase
         return Ok(await _agentService.AgentPaginationAsync(pagination));
     }
 
-    [HttpGet]
-    public async Task<ActionResult<int>> GetInstanceCountAsync()
-    {
-        return Ok(await _agentService.AgentsCountAsync());
-    }
 
     [HttpGet("Policies")]
     public async Task<ActionResult<List<AgentPolicyDto>>> GetPoliciesAsync([FromQuery] int machineId)
     {
         return Ok(await _agentService.GetPoliciesAsync(machineId));
-    }
-
-    [HttpPost("ExecutePolicy")] // update these endpoints for new management system
-    public async Task<ActionResult<ExecutedTaskDto>> PostExecutePolicyAsync([FromBody] ActionDto action)
-    {
-        var agentId = await _agentService.GetAgentIdAsync(action.MachineId);
-        action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
-
-        var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
-        return Ok(await api.PostExecutePolicyAsync(action));
-    }
-
-    [HttpPost("ExecuteCheckIn")]
-    public async Task<ActionResult<bool>> PostExecuteCheckInAsync([FromBody] ActionDto action)
-    {
-        var agentId = await _agentService.GetAgentIdAsync(action.MachineId);
-        action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
-
-        var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
-        return Ok(await api.PostExecuteCheckInAsync(action));
     }
 
     [HttpPost("ExecuteJob")]
@@ -71,9 +44,9 @@ public class AgentController : ControllerBase
         var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
         if (api is null) return BadRequest("API client not found.");
         var guid = await _agentService.SetupExecuteJob(action, api, adminUserName);
-        return Ok(guid.ToString() ?? "Job failed to start");
+        return Ok(guid?.ToString() ?? "Job failed to start");
     }
-    
+
     [HttpPost("Jobs")]
     public async Task<ActionResult<JobContextDto>> PostJobPaginationAsync([FromBody] PaginationDto pagination)
     {

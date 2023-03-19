@@ -23,8 +23,6 @@ public class AgentService : IAgentService
         _localContext = localContext;
     }
 
-    public async Task<int> AgentsCountAsync() => await _ivantiContext.ManagedMachines.CountAsync();
-
     public async Task<AgentContextDto> AgentPaginationAsync(PaginationDto pagination)
     {
         var query = _ivantiContext.ManagedMachines
@@ -99,7 +97,7 @@ public class AgentService : IAgentService
         return agentTasks;
     }
 
-    public async Task<Agent?> GetAgentIdAsync(int machineId)
+    private async Task<Agent?> GetAgentIdAsync(int machineId)
     {
         var agent = await _ivantiContext.Agents
             .Where(x => x.MachineId == machineId)
@@ -124,7 +122,7 @@ public class AgentService : IAgentService
             _localContext.Jobs.Add(job);
             await _localContext.SaveChangesAsync();
             guid = job.Guid;
-            _ = Task.Run(() => ExecuteJob(job, action, api));
+            _ = Task.Run(() => ExecuteJobAsync(job, action, api));
         }
         catch (Exception e)
         {
@@ -184,7 +182,7 @@ public class AgentService : IAgentService
         return context;
     }
 
-    private async Task ExecuteJob(EFJob job, ActionDto action, IvantiApi api)
+    private async Task ExecuteJobAsync(EFJob job, ActionDto action, IvantiApi api)
     {
         try
         {
@@ -198,8 +196,7 @@ public class AgentService : IAgentService
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-
+            Console.WriteLine("Job Async Issue! {0}", e);
             job.State = State.Failed;
             _localContext.Jobs.Update(job);
             await _localContext.SaveChangesAsync();

@@ -19,6 +19,9 @@
                           Margin="Margin.Dense"
                           AdornmentIcon="@Icons.Material.Filled.Search"/>
         </MudElement>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="OnRefreshButtonClick" Class="ml-2">
+            <MudIcon Icon="@Icons.Material.Filled.Refresh"/>
+        </MudButton>
     </MudPaper>
     <MudTable Striped="true"
               HeaderClass="mud-theme-info"
@@ -81,6 +84,28 @@
     private IEnumerable<JobDto>? _pagedData;
     private int _totalItems;
     private bool _loading = true;
+    private Timer? _timer;
+
+    protected override Task OnInitializedAsync()
+    {
+        _timer = new Timer(Callback, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        return base.OnInitializedAsync();
+    }
+
+    private async void Callback(object? _)
+    {
+        await RefreshTable();
+    }
+
+    private async Task RefreshTable()
+    {
+        await InvokeAsync(() => _table!.ReloadServerData());
+    }
+
+    private async Task OnRefreshButtonClick()
+    {
+        await RefreshTable();
+    }
 
     private async Task<TableData<JobDto>> ServerReload(TableState state)
     {
@@ -104,6 +129,11 @@
     {
         _searchString = text;
         _table!.ReloadServerData();
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 
 }
