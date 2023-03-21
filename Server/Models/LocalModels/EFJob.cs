@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Enums;
 
-namespace ISIvanti.Server.Models;
+namespace ISIvanti.Server.Models.LocalModels;
 
 public class EFJob
 {

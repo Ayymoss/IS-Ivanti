@@ -63,7 +63,7 @@
             <MudTd DataLabel="Target">@context.AgentName</MudTd>
             <MudTd DataLabel="Action">@context.TaskName</MudTd>
             <MudTd DataLabel="Created">@context.Created?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
-            <MudTd DataLabel="Completed">@context.Completed?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="Completed">@(context.Completed?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Running...")</MudTd>
             <MudTd DataLabel="State">@context.State</MudTd>
         </RowTemplate>
         <NoRecordsContent>

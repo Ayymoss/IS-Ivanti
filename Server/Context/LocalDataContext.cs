@@ -1,7 +1,8 @@
 ﻿using ISIvanti.Server.Models;
+using ISIvanti.Server.Models.LocalModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace IvantiToAdmins.Context;
+namespace ISIvanti.Server.Context;
 
 public class LocalDataContext : DbContext
 {

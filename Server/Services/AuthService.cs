@@ -4,7 +4,6 @@ using ISIvanti.Server.Enums;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Account;
-using IvantiToAdmins.Context;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 

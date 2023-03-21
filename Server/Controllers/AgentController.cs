@@ -50,6 +50,6 @@ public class AgentController : ControllerBase
     [HttpPost("Jobs")]
     public async Task<ActionResult<JobContextDto>> PostJobPaginationAsync([FromBody] PaginationDto pagination)
     {
-        return Ok(await _agentService.JobPaginationAsync(pagination));
+        return Accepted(await _agentService.JobPaginationAsync(pagination));
     }
 }

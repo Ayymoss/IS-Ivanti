@@ -2,10 +2,10 @@
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Models;
 using ISIvanti.Server.Models.IvantiModels;
+using ISIvanti.Server.Models.LocalModels;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Enums;
-using IvantiToAdmins.Context;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Task = System.Threading.Tasks.Task;
@@ -16,11 +16,15 @@ public class AgentService : IAgentService
 {
     private readonly IvantiDataContext _ivantiContext;
     private readonly LocalDataContext _localContext;
+    private readonly IBackgroundTaskQueue _taskQueue;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public AgentService(IvantiDataContext ivantiContext, LocalDataContext localContext)
+    public AgentService(IvantiDataContext ivantiContext, LocalDataContext localContext, IBackgroundTaskQueue taskQueue, IServiceScopeFactory serviceScopeFactory)
     {
         _ivantiContext = ivantiContext;
         _localContext = localContext;
+        _taskQueue = taskQueue;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task<AgentContextDto> AgentPaginationAsync(PaginationDto pagination)
@@ -97,7 +101,7 @@ public class AgentService : IAgentService
         return agentTasks;
     }
 
-    private async Task<Agent?> GetAgentIdAsync(int machineId)
+    public async Task<Agent?> GetAgentIdAsync(int machineId)
     {
         var agent = await _ivantiContext.Agents
             .Where(x => x.MachineId == machineId)
@@ -122,7 +126,20 @@ public class AgentService : IAgentService
             _localContext.Jobs.Add(job);
             await _localContext.SaveChangesAsync();
             guid = job.Guid;
-            _ = Task.Run(() => ExecuteJobAsync(job, action, api));
+            
+            var jobParam = new BackgroundJob
+            {
+                Job = job,
+                Action = action,
+                Api = api
+            };
+            _taskQueue.QueueBackgroundWorkItem(async cancellationToken =>
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var jobBackgroundTask = scope.ServiceProvider.GetRequiredService<JobBackgroundTask>();
+                await jobBackgroundTask.ExecuteAsync(jobParam);
+            });
+            
         }
         catch (Exception e)
         {

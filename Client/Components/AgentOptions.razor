@@ -96,7 +96,7 @@
             _processing = false;
             return;
         }
-        SnackbarService.Add($"Job queued! ({guid})", Severity.Success);
+        SnackbarService.Add($"Job queued! ({guid[(guid.LastIndexOf('-') + 1)..]})", Severity.Success);
         _processing = false;
     }
 

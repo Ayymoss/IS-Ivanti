@@ -5,7 +5,6 @@ using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Services;
 using ISIvanti.Server.Services.Pages;
 using ISIvanti.Server.Utilities;
-using IvantiToAdmins.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,16 +43,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite("Data Source=_Database.db"));
 builder.Services.AddDbContext<IvantiDataContext>(options =>
     options.UseSqlServer("Server=.;Database=SecurityControls;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;"));
+builder.Services.AddHostedService<BackgroundTaskService>();
 
 // Singletons
 builder.Services.AddSingleton(configuration);
 builder.Services.AddSingleton<StringEncryption>();
+builder.Services.AddSingleton<UserManager>();
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
 // Scoped
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddSingleton<UserManager>();
 
 // Add services to the container.
 builder.Services.AddLogging();
