@@ -27,6 +27,7 @@
               LoadingProgressColor="Color.Info"
               OnRowClick="AgentRowClickEvent"
               T="AgentDto"
+              HorizontalScrollbar="true"
               ServerData="@(new Func<TableState, Task<TableData<AgentDto>>>(ServerReload))"
               Elevation="2"
               RowsPerPage="20"
@@ -37,10 +38,19 @@
                 <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
+                <MudTableSortLabel SortLabel="ProductName" T="AgentDto">OS</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="ProductVersion" T="AgentDto">SP</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
                 <MudTableSortLabel SortLabel="Group" T="AgentDto">Group</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="LastUpdated" T="AgentDto">Last Updated</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="MissingPatches" T="AgentDto">Missing/Total Patches</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Percentage" T="AgentDto">Health</MudTableSortLabel>
@@ -48,8 +58,11 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Name">@context.MachineName.ToUpper()</MudTd>
+            <MudTd DataLabel="ProductName">@context.ProductName</MudTd>
+            <MudTd DataLabel="ProductVersion">@context.ProductVersion</MudTd>
             <MudTd DataLabel="AssignedGroup">@context.AssignedGroup</MudTd>
             <MudTd DataLabel="LastUpdated">@context.LastUpdated.Humanize()</MudTd>
+            <MudTd DataLabel="MissingPatches">@context.PatchesMissing/@(context.PatchesMissing + context.PatchesInstalled)</MudTd>
             <MudTd DataLabel="Health">
                 <MudProgressLinear Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
                     <MudText Typo="Typo.caption" Color="Color.Dark">@Math.Floor(context.PatchesInstalledPercentage)%</MudText>

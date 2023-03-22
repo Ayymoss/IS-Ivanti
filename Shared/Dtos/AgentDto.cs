@@ -15,4 +15,6 @@ public class AgentDto
     public int PatchesMissing { get; set; }
     public float PatchesInstalledPercentage { get; set; }
     public DateTime LastUpdated { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductVersion { get; set; }
 }

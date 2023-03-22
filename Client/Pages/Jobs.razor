@@ -2,13 +2,16 @@
 @inject AgentService AgentService
 @attribute [Authorize]
 
-
 <PageTitle>Jobs | ISIvanti</PageTitle>
 
-
 <MudStack Spacing="0">
-    <MudPaper Elevation="2" Class="d-flex flex-row justify-content-between align-center pa-4 rounded-b-0">
+    <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
         <MudText Typo="Typo.h4" Align="Align.Center" Class="mud-text-secondary">Jobs</MudText>
+        <MudDivider DividerType="DividerType.Middle" Class="py-4 mx-2" Vertical="true"/>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="OnRefreshButtonClick" Class="ml-1">
+            <MudIcon Icon="@Icons.Material.Filled.Refresh"/>
+        </MudButton>
+        <MudSpacer/>
         <MudElement Class="ml-2 mt-0">
             <MudTextField T="string"
                           Placeholder="Filter"
@@ -19,9 +22,6 @@
                           Margin="Margin.Dense"
                           AdornmentIcon="@Icons.Material.Filled.Search"/>
         </MudElement>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="OnRefreshButtonClick" Class="ml-2">
-            <MudIcon Icon="@Icons.Material.Filled.Refresh"/>
-        </MudButton>
     </MudPaper>
     <MudTable Striped="true"
               HeaderClass="mud-theme-info"
@@ -60,7 +60,7 @@
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Guid.ToString()[(context.Guid.ToString().LastIndexOf('-') + 1)..]</MudTd>
             <MudTd DataLabel="UserName">@context.UserName</MudTd>
-            <MudTd DataLabel="Target">@context.AgentName</MudTd>
+            <MudTd DataLabel="Target">@context.AgentName?.ToUpper()</MudTd>
             <MudTd DataLabel="Action">@context.TaskName</MudTd>
             <MudTd DataLabel="Created">@context.Created?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
             <MudTd DataLabel="Completed">@(context.Completed?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Running...")</MudTd>

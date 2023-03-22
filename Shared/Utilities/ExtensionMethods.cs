@@ -11,7 +11,7 @@ public static class ExtensionMethods
         {
             PropertyNameCaseInsensitive = true
         };
-        
+
         if (!response.IsSuccessStatusCode) return null;
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<T>(json, jsonSerializerOptions);

@@ -53,6 +53,7 @@ builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
 // Scoped
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<JobBackgroundTask>();
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

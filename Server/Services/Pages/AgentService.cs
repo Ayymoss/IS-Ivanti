@@ -6,6 +6,7 @@ using ISIvanti.Server.Models.LocalModels;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Enums;
+using ISIvanti.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Task = System.Threading.Tasks.Task;
@@ -30,7 +31,6 @@ public class AgentService : IAgentService
     public async Task<AgentContextDto> AgentPaginationAsync(PaginationDto pagination)
     {
         var query = _ivantiContext.ManagedMachines
-            //.Where(machine => machine.LastUpdated >= DateTime.Today.AddDays(-30))
             .GroupJoin(_ivantiContext.XtrCurrentPatchCounts,
                 machine => machine.MmKey,
                 patch => patch.Machineid,
@@ -38,6 +38,8 @@ public class AgentService : IAgentService
                 {
                     MachineId = machine.MmKey,
                     MachineName = machine.Name,
+                    ProductName = machine.MmOs.Spplprod.ProdName,
+                    ProductVersion = machine.MmOs.Spplsp.SpName,
                     AssignedGroup = machine.AssignedGroup,
                     LastUpdated = machine.LastUpdated,
                     PatchesInstalled = patches.Sum(patch => patch.Installedcnt ?? 0),
@@ -51,8 +53,10 @@ public class AgentService : IAgentService
         if (!string.IsNullOrWhiteSpace(pagination.SearchString))
         {
             query = query.Where(search =>
-                EF.Functions.Like(search.MachineName, $"%{pagination.SearchString}%") ||
-                EF.Functions.Like(search.AssignedGroup ?? "unknown", $"%{pagination.SearchString}%"));
+                EF.Functions.Like(search.MachineName ?? string.Empty, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.ProductName ?? string.Empty, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.ProductVersion ?? string.Empty, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.AssignedGroup ?? string.Empty, $"%{pagination.SearchString}%"));
         }
 
         query = pagination.SortLabel switch
@@ -61,6 +65,9 @@ public class AgentService : IAgentService
             "Name" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.MachineName),
             "Group" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.AssignedGroup),
             "LastUpdated" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.LastUpdated),
+            "ProductName" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.ProductName),
+            "ProductVersion" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.ProductVersion),
+            "MissingPatches" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.PatchesMissing),
             "Percentage" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.PatchesInstalledPercentage),
             _ => query
         };
@@ -197,26 +204,5 @@ public class AgentService : IAgentService
         };
 
         return context;
-    }
-
-    private async Task ExecuteJobAsync(EFJob job, ActionDto action, IvantiApi api)
-    {
-        try
-        {
-            var agentId = await GetAgentIdAsync(action.MachineId);
-            action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
-            var result = await api.PostExecuteCheckInAsync(action);
-            job.State = result ? State.Completed : State.Failed;
-            job.Completed = DateTime.UtcNow;
-            _localContext.Jobs.Update(job);
-            await _localContext.SaveChangesAsync();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Job Async Issue! {0}", e);
-            job.State = State.Failed;
-            _localContext.Jobs.Update(job);
-            await _localContext.SaveChangesAsync();
-        }
     }
 }
