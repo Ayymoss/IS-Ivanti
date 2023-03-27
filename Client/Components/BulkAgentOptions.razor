@@ -3,25 +3,34 @@
 
 <MudDialog>
     <DialogContent>
-        <MudElement Class="d-flex flex-column">
-            @if (_policies?.Count is 0)
-            {
-                <MudText>There are no policies for this computer.</MudText>
-            }
-            else
-            {
-                <MudText>Item: @_selectedItem?.Text</MudText>
-                <MudText>Value: @_selectedValue</MudText>
-                <MudDivider FlexItem="true"/>
-                <MudList Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue">
-                    <MudListItem Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
-                    @foreach (var policy in _policies.OrderBy(x => x.TaskType))
+        <MudStack Row="true" Class="justify-center">
+            <MudPaper Elevation="2" Class="flex-initial">
+                <MudList Dense="true" Color="Color.Dark" Class="list-container">
+                    <MudListSubheader>Selected</MudListSubheader>
+                    @foreach (var agent in Agents)
                     {
-                        <MudListItem Text="@($"({policy.TaskType}) {policy.TaskName}")" Value="@(policy.TaskId)"/>
+                        <MudListItem Class="list-item" Text="@agent.MachineName" Icon="@Icons.Material.Filled.Computer"/>
                     }
                 </MudList>
-            }
-        </MudElement>
+            </MudPaper>
+            <MudDivider Vertical="true" FlexItem="true" Light="true" DividerType="DividerType.Middle"/>
+            <MudStack Class="flex-initial">
+                @if (_policies?.Count is 0)
+                {
+                    <MudText>Policies loading...</MudText>
+                }
+                else
+                {
+                    <MudList Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue">
+                        <MudListItem Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
+                        @foreach (var policy in _policies?.OrderBy(x => x.TaskType))
+                        {
+                            <MudListItem Text="@($"({policy.TaskType}) {policy.TaskName}")" Value="@(policy.TaskId)"/>
+                        }
+                    </MudList>
+                }
+            </MudStack>
+        </MudStack>
         <MudElement Class="d-flex flex-column mb-3">
             <MudDivider FlexItem="true" DividerType="DividerType.Inset" Class="mx-n6 mb-4 mt-8"/>
             <MudElement Class="d-flex">
@@ -41,7 +50,7 @@
                     }
                     else
                     {
-                        <MudText>Issue Job</MudText>
+                        <MudText>Issue Jobs</MudText>
                     }
                 </MudButton>
             </MudElement>
@@ -55,7 +64,7 @@
     MudDialogInstance MudDialog { get; set; }
 
     [Parameter]
-    public AgentDto Agent { get; set; } = null!;
+    public List<AgentDto> Agents { get; set; } = null!;
 
     private MudListItem? _selectedItem;
     private object? _selectedValue;
@@ -66,7 +75,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _policies = await AgentService.GetPoliciesAsync(Agent.MachineId);
+        if (!Agents.Any())
+        {
+            SnackbarService.Add("No agents selected...", Severity.Error);
+            MudDialog.Close();
+            return;
+        }
+
+        _policies = await AgentService.GetPoliciesAsync(Agents.First().MachineId);
     }
 
     private async Task SendJob()
@@ -76,23 +92,24 @@
         _processing = true;
         SnackbarService.Add("Job created! Please wait!", Severity.Info);
 
-        var action = new ActionDto
+        var actions = Agents.Select(x => new ActionDto
         {
-            MachineId = Agent.MachineId,
-            AgentName = Agent.MachineName,
+            MachineId = x.MachineId,
+            AgentName = x.MachineName,
             TaskId = _selectedValue.ToString(),
-            TaskName = _selectedItem.Text,
+            TaskName = _selectedItem?.Text,
             TaskType = _selectedValue as string is "CHECKIN" ? TaskType.CheckIn : TaskType.Other
-        };
+        }).ToList();
 
-        var guid = await AgentService.PostExecuteJobAsync(action);
-        if (guid is null)
+        var guids = await AgentService.PostExecuteJobsAsync(actions);
+
+        if (guids is null)
         {
             SnackbarService.Add("Job request failed!", Severity.Error);
             _processing = false;
             return;
         }
-        SnackbarService.Add($"Job queued! ({guid[(guid.LastIndexOf('-') + 1)..]})", Severity.Success);
+        SnackbarService.Add($"Jobs queued! ({guids.Count}/{actions.Count})", Severity.Success);
         _processing = false;
     }
 

@@ -2,7 +2,7 @@
 
 namespace ISIvanti.Shared.Dtos;
 
-public class ActionDto
+public record ActionDto
 {
     public string? AgentId { get; set; }
     public int MachineId { get; set; }

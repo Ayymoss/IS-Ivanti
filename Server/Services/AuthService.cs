@@ -31,7 +31,7 @@ public class AuthService : IAuthService
         };
         _userManager.AddUser(user); // The memory of this object can be abused. But, since it's internal I don't think it matters.
 
-        if (!Shared.Utilities.Utilities.IsDebugMode())
+        //if (!Shared.Utilities.Utilities.IsDebugMode())
         {
             var apiClient = _apiClient.GetIvantiApiAsync(user.Identity);
             if (apiClient is null) return (ControllerEnums.ReturnState.Unauthorized, null, null)!;

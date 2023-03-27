@@ -1,0 +1,7 @@
+﻿.list-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.list-item {
+    height: 30px;
+}

@@ -9,4 +9,9 @@
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
+    <PackageReference Include="MudBlazor" Version="6.2.0" />
+  </ItemGroup>
 </Project>

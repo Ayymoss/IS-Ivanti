@@ -2,11 +2,11 @@
 
 namespace ISIvanti.Shared.Dtos.Ivanti;
 
-public class AgentPolicyValueDto
+public record AgentPolicyValueDto
 {
     public List<AgentPolicyDto>? Value { get; set; }
 }
-public class AgentPolicyDto
+public record AgentPolicyDto
 {
     public Guid TaskId { get; set; }
     public string? TaskName { get; set; }

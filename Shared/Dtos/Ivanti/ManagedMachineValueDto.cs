@@ -1,11 +1,11 @@
 ﻿namespace ISIvanti.Shared.Dtos.Ivanti;
 
-public class ManagedMachineValueDto
+public record ManagedMachineValueDto
 {
     public List<ManagedMachineDto>? Value { get; set; }
 }
 
-public class ManagedMachineDto
+public record ManagedMachineDto
 {
     public string? AssignedGroup { get; set; }
     public string? IpAddress { get; set; }

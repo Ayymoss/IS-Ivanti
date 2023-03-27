@@ -6,11 +6,15 @@
 
 <MudStack Spacing="0">
     <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
-        <MudText Typo="Typo.h4" Align="Align.Center" Class="mud-text-secondary">Jobs</MudText>
-        <MudDivider DividerType="DividerType.Middle" Class="py-4 mx-2" Vertical="true"/>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="OnRefreshButtonClick" Class="ml-1">
-            <MudIcon Icon="@Icons.Material.Filled.Refresh"/>
-        </MudButton>
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Class="mud-text-secondary mr-4">
+            Jobs
+        </MudText>
+        <MudFab Color="Color.Info"
+                Size="Size.Small"
+                OnClick="OnRefreshButtonClick"
+                StartIcon="@Icons.Material.Filled.Refresh"/>
         <MudSpacer/>
         <MudElement Class="ml-2 mt-0">
             <MudTextField T="string"
@@ -56,6 +60,9 @@
             <MudTh>
                 <MudTableSortLabel SortLabel="State" T="JobDto">State</MudTableSortLabel>
             </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="StateResult" T="JobDto">Result</MudTableSortLabel>
+            </MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Guid.ToString()[(context.Guid.ToString().LastIndexOf('-') + 1)..]</MudTd>
@@ -63,11 +70,21 @@
             <MudTd DataLabel="Target">@context.AgentName?.ToUpper()</MudTd>
             <MudTd DataLabel="Action">@context.TaskName</MudTd>
             <MudTd DataLabel="Created">@context.Created?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
-            <MudTd DataLabel="Completed">@(context.Completed?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Running...")</MudTd>
+            <MudTd DataLabel="Completed">
+                @if (context.Completed is null)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Info" Rounded="true" Size="Size.Large"/>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2">@context.Completed?.ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+                }
+            </MudTd>
             <MudTd DataLabel="State">@context.State</MudTd>
+            <MudTd DataLabel="StateResult">@context.StateResult.StatusCodeToString()</MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText Class="mb-8" Color="Color.Warning">No jobs found.</MudText>
+            <MudText Class="my-4">No jobs found</MudText>
         </NoRecordsContent>
         <LoadingContent>
             <MudText>Loading...</MudText>
@@ -92,13 +109,11 @@
         return base.OnInitializedAsync();
     }
 
-    private async void Callback(object? _)
-    {
-        await RefreshTable();
-    }
+    private async void Callback(object? _) => await RefreshTable();
 
     private async Task RefreshTable()
     {
+        _loading = true;
         await InvokeAsync(() => _table!.ReloadServerData());
     }
 

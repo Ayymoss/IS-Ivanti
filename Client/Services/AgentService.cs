@@ -87,4 +87,20 @@ public class AgentService
 
         return new JobContextDto();
     }
+
+    public async Task<List<string>?> PostExecuteJobsAsync(List<ActionDto> actions)
+    {
+        try
+        {
+            var response = await _api.PostExecuteJobsAsync(actions);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.DeserializeHttpResponseContentAsync<List<string>>();
+        }
+        catch (ApiException e)
+        {
+            Console.WriteLine($"API->Failed to post jobS execution: {e.Message}");
+        }
+
+        return null;
+    }
 }
