@@ -67,8 +67,8 @@
               HorizontalScrollbar="true"
               ServerData="@(new Func<TableState, Task<TableData<AgentDto>>>(ServerReload))"
               Elevation="2"
-              RowsPerPage="20"
               Dense="true"
+              @bind-RowsPerPage="_rowsPerPage"
               @ref="_table">
         <HeaderContent>
             <MudTh Class="py-2">
@@ -115,7 +115,7 @@
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText Class="my-4">No agents found</MudText>
+            <MudText>No agents found</MudText>
         </NoRecordsContent>
         <LoadingContent>
             <MudText>Loading...</MudText>
@@ -132,6 +132,7 @@
     private MudTable<AgentDto>? _table;
     private string? _searchString;
     private IEnumerable<AgentDto>? _pagedData;
+    private int _rowsPerPage = 20;
     private int _totalItems;
     private bool _loading = true;
     private bool _multiSelectActive;
@@ -186,7 +187,7 @@
             {"Agent", clickEvent.Item},
         };
 
-        var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Medium, CloseOnEscapeKey = true};
+        var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true};
         var onlineState = clickEvent.Item.LastUpdated + TimeSpan.FromHours(2) > DateTimeOffset.UtcNow;
         var title = $"Actions for {clickEvent.Item.MachineName} - {(onlineState ? "Online" : "Offline")}";
         await DialogService.ShowAsync<AgentOptions>(title, parameters, options);

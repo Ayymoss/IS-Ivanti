@@ -42,12 +42,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite("Data Source=_Database.db"));
 builder.Services.AddDbContext<IvantiDataContext>(options =>
-    options.UseSqlServer("Server=.;Database=SecurityControls;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;"));
+    options.UseSqlServer(configuration.DatabaseConnectionString));
 builder.Services.AddHostedService<BackgroundTaskService>();
 
 // Singletons
 builder.Services.AddSingleton(configuration);
-builder.Services.AddSingleton<StringEncryption>();
 builder.Services.AddSingleton<UserManager>();
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 

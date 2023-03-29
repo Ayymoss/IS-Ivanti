@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
-using ISIvanti.Client.Interfaces;
+﻿using ISIvanti.Client.Interfaces;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Utilities;
@@ -13,7 +11,7 @@ public class AgentService
 #if DEBUG
     private const string ApiHost = "https://localhost:8123/api";
 #else
-    private const string ApiHost = "/api";
+    private const string ApiHost = "https://az-app30-vm:8123/api";
 #endif
 
     private readonly IAgentService _api;

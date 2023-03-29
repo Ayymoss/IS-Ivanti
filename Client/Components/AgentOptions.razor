@@ -3,25 +3,25 @@
 
 <MudDialog>
     <DialogContent>
-        <MudElement Class="d-flex flex-column">
-            @if (_policies?.Count is 0)
-            {
-                <MudText>There are no policies for this computer.</MudText>
-            }
-            else
-            {
-                <MudText>Item: @_selectedItem?.Text</MudText>
-                <MudText>Value: @_selectedValue</MudText>
-                <MudDivider FlexItem="true"/>
-                <MudList Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue">
-                    <MudListItem Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
-                    @foreach (var policy in _policies.OrderBy(x => x.TaskType))
-                    {
-                        <MudListItem Text="@($"({policy.TaskType}) {policy.TaskName}")" Value="@(policy.TaskId)"/>
-                    }
-                </MudList>
-            }
-        </MudElement>
+        <MudStack>
+            <MudPaper Elevation="2" Class="flex-initial">
+                @if (_policies?.Count is 0)
+                {
+                    <MudText>There are no policies for this computer.</MudText>
+                }
+                else
+                {
+                    <MudList Class="list-container" Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue">
+                        <MudListSubheader>Policies (@_policies?.Count)</MudListSubheader>
+                        <MudListItem Class="list-item" Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
+                        @foreach (var policy in _policies.OrderBy(x => x.TaskType))
+                        {
+                            <MudListItem Class="list-item" Text="@($"({policy.TaskType}) {policy.TaskName}")" Value="@(policy.TaskId)"/>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudStack>
         <MudElement Class="d-flex flex-column mb-3">
             <MudDivider FlexItem="true" DividerType="DividerType.Inset" Class="mx-n6 mb-4 mt-8"/>
             <MudElement Class="d-flex">
@@ -71,7 +71,11 @@
 
     private async Task SendJob()
     {
-        if (_selectedValue is null) return;
+        if (_selectedValue is null)
+        {
+            SnackbarService.Add("Select a policy", Severity.Info);
+            return;
+        }
 
         _processing = true;
         SnackbarService.Add("Job created! Please wait!", Severity.Info);
