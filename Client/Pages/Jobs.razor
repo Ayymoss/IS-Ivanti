@@ -2,7 +2,7 @@
 @inject AgentService AgentService
 @attribute [Authorize]
 
-<PageTitle>Jobs | ISIvanti</PageTitle>
+<PageTitle>Jobs | ISI Patch</PageTitle>
 
 <MudStack Spacing="0">
     <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
@@ -66,7 +66,7 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Guid.ToString()[(context.Guid.ToString().LastIndexOf('-') + 1)..]</MudTd>
-            <MudTd DataLabel="UserName">@context.UserName</MudTd>
+            <MudTd DataLabel="UserName">@context.UserName?.ToLower()</MudTd>
             <MudTd DataLabel="Target">@context.AgentName?.ToUpper()</MudTd>
             <MudTd DataLabel="Action">@context.TaskName</MudTd>
             <MudTd DataLabel="Created">@context.Created?.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>

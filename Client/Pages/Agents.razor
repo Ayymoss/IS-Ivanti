@@ -3,7 +3,7 @@
 @inject AgentService AgentService
 @attribute [Authorize]
 
-<PageTitle>Agents | ISIvanti</PageTitle>
+<PageTitle>Agents | ISI Patch</PageTitle>
 
 <MudStack Spacing="0">
     <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
@@ -39,9 +39,24 @@
                    Color="Color.Info">
             Clear Filter
         </MudButton>
+        <MudMenu class="mr-4" Dense="true" MaxHeight="600" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled"
+                           Disabled="@(!_groupPolicies.Any())"
+                           Color="Color.Primary">
+                    Filters
+                </MudButton>
+            </ActivatorContent>
+            <ChildContent>
+                @foreach (var policy in _groupPolicies)
+                {
+                    <MudMenuItem OnClick="@(() => OnPolicyGroupClick(policy))">@policy</MudMenuItem>
+                }
+            </ChildContent>
+        </MudMenu>
         <MudElement Class="mt-0">
             <MudTextField T="string"
-                          Placeholder="Filter"
+                          Label="Filter"
                           Variant="Variant.Outlined"
                           Value="_searchString"
                           ValueChanged="OnSearch"
@@ -72,7 +87,7 @@
               @ref="_table">
         <HeaderContent>
             <MudTh Class="py-2">
-                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="ProductName" T="AgentDto">OS</MudTableSortLabel>
@@ -89,7 +104,17 @@
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Percentage" T="AgentDto">Health</MudTableSortLabel>
+                <MudTableSortLabel InitialDirection="SortDirection.Descending" SortLabel="MissingPatches" T="AgentDto">
+                    <MudText Style="white-space: nowrap;" Typo="Typo.body2">Missing Patches</MudText>
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Percentage" T="AgentDto">
+                    <MudText Style="white-space: nowrap;" Typo="Typo.body2" Class="mr-1">Health</MudText>
+                    <MudTooltip Arrow="true" Placement="Placement.Top" Text="Missing Patches / Total Patches" RootClass="d-flex">
+                        <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Info"/>
+                    </MudTooltip>
+                </MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -108,9 +133,12 @@
             <MudTd DataLabel="LastUpdated">
                 <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.LastUpdated.Humanize()</MudText>
             </MudTd>
+            <MudTd DataLabel="MissingPatches">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.PatchesMissing</MudText>
+            </MudTd>
             <MudTd DataLabel="Health">
-                <MudProgressLinear Style="width: 250px" Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
-                    <MudText Typo="Typo.caption" Color="Color.Dark">@Math.Floor(context.PatchesInstalledPercentage)% (@context.PatchesMissing/@(context.PatchesMissing + context.PatchesInstalled))</MudText>
+                <MudProgressLinear Style="width: 100%; min-width: 250px;" Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
+                    <MudText Typo="Typo.caption" Color="Color.Dark">@(string.Format($"{context.PatchesInstalledPercentage:N1}%")) (@context.PatchesMissing/@(context.PatchesMissing + context.PatchesInstalled))</MudText>
                 </MudProgressLinear>
             </MudTd>
         </RowTemplate>
@@ -132,6 +160,7 @@
     private MudTable<AgentDto>? _table;
     private string? _searchString;
     private IEnumerable<AgentDto>? _pagedData;
+    private List<string> _groupPolicies = new();
     private int _rowsPerPage = 20;
     private int _totalItems;
     private bool _loading = true;
@@ -139,7 +168,11 @@
     private bool _bulkActionsActive;
     private bool _filterActive;
     private Color _multiSelectButtonColour = Color.Info;
-    // TODO: Large page size, page changes forces multiple reloads.
+
+    protected override async Task OnInitializedAsync()
+    {
+        _groupPolicies = await AgentService.GetAgentGroups() ?? new List<string>();
+    }
 
     private async Task<TableData<AgentDto>> ServerReload(TableState state)
     {
@@ -189,7 +222,7 @@
 
         var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true};
         var onlineState = clickEvent.Item.LastUpdated + TimeSpan.FromHours(2) > DateTimeOffset.UtcNow;
-        var title = $"Actions for {clickEvent.Item.MachineName} - {(onlineState ? "Online" : "Offline")}";
+        var title = $"Actions for {clickEvent.Item.MachineName} - {(onlineState ? "Probably Online" : "Possibly Offline")}";
         await DialogService.ShowAsync<AgentOptions>(title, parameters, options);
     }
 
@@ -212,6 +245,7 @@
 
     private void OnClearSelected() => _selectedItems.Clear();
     private void OnClearFilterClick() => OnSearch(string.Empty);
+    private void OnPolicyGroupClick(string item) => OnSearch(item);
 
     private static Color ProgressColor(float number)
     {
@@ -230,6 +264,5 @@
         }
         return Color.Default;
     }
-
 
 }

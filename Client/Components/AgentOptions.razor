@@ -12,7 +12,7 @@
                 else
                 {
                     <MudList Class="list-container" Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue">
-                        <MudListSubheader>Policies (@_policies?.Count)</MudListSubheader>
+                        <MudListSubheader>Policies (@(_policies?.Count + 1))</MudListSubheader>
                         <MudListItem Class="list-item" Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
                         @foreach (var policy in _policies.OrderBy(x => x.TaskType))
                         {

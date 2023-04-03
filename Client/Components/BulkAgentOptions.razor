@@ -9,7 +9,7 @@
                     <MudListSubheader>Selected (@Agents.Count)</MudListSubheader>
                     @foreach (var agent in Agents)
                     {
-                        <MudListItem Class="list-item" Text="@agent.MachineName" Icon="@Icons.Material.Filled.Computer"/>
+                        <MudListItem Class="list-item" Text="@agent.MachineName?.ToUpper()" Icon="@Icons.Material.Filled.Computer"/>
                     }
                 </MudList>
             </MudPaper>
@@ -23,7 +23,7 @@
                     else
                     {
                         <MudList Dense="true" Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedValue" Class="list-container">
-                            <MudListSubheader>Policies (@_policies?.Count)</MudListSubheader>
+                            <MudListSubheader>Policies (@(_policies?.Count + 1))</MudListSubheader>
                             <MudListItem Class="list-item" Text="(Check-in) Force a check-in" Value="@("CHECKIN")"/>
                             @foreach (var policy in _policies?.OrderBy(x => x.TaskType))
                             {

@@ -45,8 +45,9 @@ public class AgentService : IAgentService
                 PatchesMissing = machine.MachineMeasure.MissingPatches + machine.MachineMeasure.MissingServicePacks ?? 0,
                 PatchesInstalledPercentage = (machine.MachineMeasure.MissingPatches ?? 0) +
                     (machine.MachineMeasure.MissingServicePacks ?? 0) + (machine.MachineMeasure.InstalledPatches ?? 0) > 0
-                        ? ((float)(machine.MachineMeasure.InstalledPatches ?? 0) * 100 / 
-                                  ((machine.MachineMeasure.MissingPatches ?? 0) + (machine.MachineMeasure.MissingServicePacks ?? 0) + (machine.MachineMeasure.InstalledPatches ?? 0)))
+                        ? (float)(machine.MachineMeasure.InstalledPatches ?? 0) * 100 /
+                          ((machine.MachineMeasure.MissingPatches ?? 0) + (machine.MachineMeasure.MissingServicePacks ?? 0) +
+                           (machine.MachineMeasure.InstalledPatches ?? 0))
                         : 0
             });
 
@@ -115,6 +116,18 @@ public class AgentService : IAgentService
             .Where(x => x.MachineId == machineId)
             .FirstOrDefaultAsync();
         return agent;
+    }
+
+    public async Task<List<string?>> GetAgentGroups()
+    {
+        var list = await _ivantiContext.ManagedMachines
+            .Select(x => x.AssignedGroup)
+            .Where(x => x != null)
+            .Distinct()
+            .ToListAsync();
+
+        var orderedList = list.Order().ToList();
+        return orderedList;
     }
 
     public async Task<Guid?> SetupExecuteJob(ActionDto action, IvantiApi api, string adminName)

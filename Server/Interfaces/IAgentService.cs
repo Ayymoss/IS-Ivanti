@@ -12,4 +12,5 @@ public interface IAgentService
     Task<Guid?> SetupExecuteJob(ActionDto action, IvantiApi api, string adminName);
     Task<JobContextDto> JobPaginationAsync(PaginationDto pagination);
     Task<Agent?> GetAgentIdAsync(int machineId);
+    Task<List<string?>> GetAgentGroups();
 }

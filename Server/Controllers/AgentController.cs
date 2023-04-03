@@ -73,4 +73,10 @@ public class AgentController : ControllerBase
     {
         return Accepted(await _agentService.JobPaginationAsync(pagination));
     }
+    
+    [HttpGet("PolicyGroups")]
+    public async Task<ActionResult<List<string>>> GetAgentGroups()
+    {
+        return Ok(await _agentService.GetAgentGroups());
+    }
 }

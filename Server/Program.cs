@@ -7,6 +7,8 @@ using ISIvanti.Server.Services.Pages;
 using ISIvanti.Server.Utilities;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
 
 var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 var file = File.ReadAllText(Path.Join(directory, "_Configuration.json"));
@@ -15,34 +17,38 @@ if (configuration is null) return;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//if (configuration.CertificatePath is not null && configuration.CertificatePassword is not null)
-//{
-//    Console.WriteLine("Starting as HTTPS with Certification");
-//    builder.WebHost.UseKestrel(options =>
-//    {
-//        options.ListenAnyIP(8122);
-//        options.ListenAnyIP(8123, configure => configure.UseHttps(configuration.CertificatePath, configuration.CertificatePassword));
-//    });
-//}
-//else
+if (configuration.CertificatePath is not null && configuration.CertificatePassword is not null)
+{
+    Console.WriteLine("Starting as HTTPS with Custom Certification");
+    builder.WebHost.UseKestrel(options =>
+    {
+        options.ListenAnyIP(8123, configure => 
+            configure.UseHttps(configuration.CertificatePath, configuration.CertificatePassword));
+    });
+}
+else
 {
     builder.WebHost.ConfigureKestrel(options =>
     {
 #if !DEBUG
-        Console.WriteLine("Starting as HTTPS without Certification");  
+        Console.WriteLine("Starting as HTTPS with Developer Certificate");  
         options.ListenAnyIP(8122);
         options.ListenAnyIP(8123, configure => configure.UseHttps());
 #else
-        Console.WriteLine("Starting as HTTPS as Local");
+        Console.WriteLine("Starting as HTTPS as Local Certificate");
         options.ListenLocalhost(8122);
         options.ListenLocalhost(8123, configure => configure.UseHttps());
 #endif
     });
 }
 
-builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite("Data Source=_Database.db"));
+#if DEBUG
+builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite($"Data Source=_Database.db"));
+#else
+builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite($"Data Source={configuration.LocalDatabaseLocation}"));
+#endif
 builder.Services.AddDbContext<IvantiDataContext>(options =>
-    options.UseSqlServer(configuration.DatabaseConnectionString));
+    options.UseSqlServer(configuration.IvantiDatabaseConnectionString));
 builder.Services.AddHostedService<BackgroundTaskService>();
 
 // Singletons
@@ -56,14 +62,34 @@ builder.Services.AddScoped<JobBackgroundTask>();
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+if (!Directory.Exists(Path.Join(AppContext.BaseDirectory, "Log")))
+    Directory.CreateDirectory(Path.Join(AppContext.BaseDirectory, "Log"));
+
+var logLevel = configuration.LogLevel switch
+{
+    "Debug" => LogEventLevel.Debug,
+    "Warning" => LogEventLevel.Warning,
+    "Information" => LogEventLevel.Information,
+    _ => LogEventLevel.Information
+};
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", logLevel)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        Path.Join(AppContext.BaseDirectory, "Log", "patch-.log"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 10,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
 // Add services to the container.
-builder.Services.AddLogging();
 builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSwaggerGen();
-builder.Logging.ClearProviders().AddConsole();
-
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(opt =>
     {
@@ -87,6 +113,10 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
+
+// Host Level Meta
+builder.Host.UseSerilog();
+builder.Host.UseWindowsService();
 
 var app = builder.Build();
 

@@ -23,8 +23,7 @@ public static class ExtensionMethods
         return statusCode switch
         {
             HttpStatusCode.OK => "Success",
-            HttpStatusCode.BadRequest => "Offline?",
-            HttpStatusCode.InternalServerError => "Internal Error",
+            HttpStatusCode.InternalServerError => "Unreachable",
             HttpStatusCode.PartialContent => string.Empty,
             _ => statusCode.Humanize()
         };

@@ -22,4 +22,7 @@ public interface IAgentService
 
     [Post("/Agent/ExecuteJobs")]
     Task<HttpResponseMessage> PostExecuteJobsAsync([Body] List<ActionDto> actions);
+
+    [Get("/Agent/PolicyGroups")]
+    Task<HttpResponseMessage> GetAgentGroups();
 }

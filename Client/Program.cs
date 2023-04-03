@@ -17,7 +17,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 #if DEBUG
 builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)});
 #else 
-builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri("https://az-app30-vm:8123/")});
+builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri("https://isipatch.idealstandard.com:8123/")});
 #endif
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
