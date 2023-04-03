@@ -1,6 +1,6 @@
 ﻿namespace ISIvanti.Shared.Dtos;
 
-public class PaginationDto
+public record PaginationDto
 {
     public int? Page { get; set; }
     public int? PageSize { get; set; }

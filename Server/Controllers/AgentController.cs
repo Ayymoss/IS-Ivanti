@@ -47,9 +47,36 @@ public class AgentController : ControllerBase
         return Ok(guid?.ToString() ?? "Job failed to start");
     }
 
+    [HttpPost("ExecuteJobs")]
+    public async Task<ActionResult<List<string>>> ExecuteJobsAsync([FromBody] List<ActionDto> actions)
+    {
+        var adminUserName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        var adminIdentity = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (adminUserName is null || adminIdentity is null) return BadRequest("Admin user name not found.");
+        var api = _apiClient.GetIvantiApiAsync(Guid.Parse(adminIdentity));
+        if (api is null) return BadRequest("API client not found.");
+
+        var guids = new List<string>();
+        foreach (var action in actions)
+        {
+            var guid = await _agentService.SetupExecuteJob(action, api, adminUserName);
+            var guidString = guid.ToString();
+            if (guidString is null) continue;
+            guids.Add(guidString);
+        }
+
+        return Ok(guids);
+    }
+
     [HttpPost("Jobs")]
     public async Task<ActionResult<JobContextDto>> PostJobPaginationAsync([FromBody] PaginationDto pagination)
     {
         return Accepted(await _agentService.JobPaginationAsync(pagination));
+    }
+    
+    [HttpGet("PolicyGroups")]
+    public async Task<ActionResult<List<string>>> GetAgentGroups()
+    {
+        return Ok(await _agentService.GetAgentGroups());
     }
 }

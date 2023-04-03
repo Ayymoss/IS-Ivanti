@@ -1,12 +1,12 @@
 ﻿namespace ISIvanti.Shared.Dtos;
 
-public class AgentContextDto
+public record AgentContextDto
 {
     public int Count { get; set; }
     public List<AgentDto>? Agents { get; set; }
 }
 
-public class AgentDto
+public record AgentDto
 {
     public int MachineId { get; set; }
     public string? MachineName { get; set; }
@@ -15,4 +15,6 @@ public class AgentDto
     public int PatchesMissing { get; set; }
     public float PatchesInstalledPercentage { get; set; }
     public DateTime LastUpdated { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductVersion { get; set; }
 }

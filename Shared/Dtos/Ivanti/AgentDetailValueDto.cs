@@ -1,11 +1,11 @@
 ﻿namespace ISIvanti.Shared.Dtos.Ivanti;
 
-public class AgentDetailValueDto
+public record AgentDetailValueDto
 {
     public List<AgentDetailDto>? Value { get; set; }
 }
 
-public class AgentDetailDto
+public record AgentDetailDto
 {
     public string? AgentId { get; set; }
     public DateTimeOffset LastCheckIn { get; set; }

@@ -1,7 +1,10 @@
-﻿using ISIvanti.Server.Context;
+﻿using System.Net;
+using Humanizer;
+using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Models;
 using ISIvanti.Shared.Enums;
+using ISIvanti.Shared.Utilities;
 
 namespace ISIvanti.Server.Services;
 
@@ -22,8 +25,22 @@ public class JobBackgroundTask
         {
             var agentId = await _agentService.GetAgentIdAsync(jobParam.Action.MachineId);
             jobParam.Action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
-            var result = await jobParam.Api.PostExecuteCheckInAsync(jobParam.Action);
-            jobParam.Job.State = result ? State.Completed : State.Failed;
+            bool state;
+            HttpStatusCode? stateResult;
+            if (jobParam.Action.TaskId is "CHECKIN")
+            {
+                stateResult = await jobParam.Api.PostExecuteCheckInAsync(jobParam.Action);
+                state = stateResult is HttpStatusCode.OK;
+            }
+            else
+            {
+                stateResult = await jobParam.Api.PostExecutePolicyAsync(jobParam.Action);
+                state = stateResult is HttpStatusCode.OK;
+
+            }
+
+            jobParam.Job.State = state ? State.Completed : State.Failed;
+            jobParam.Job.StateResult = stateResult ?? HttpStatusCode.InternalServerError;
             jobParam.Job.Completed = DateTime.UtcNow;
             _localContext.Jobs.Update(jobParam.Job);
             await _localContext.SaveChangesAsync();

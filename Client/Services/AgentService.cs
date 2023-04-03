@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
-using ISIvanti.Client.Interfaces;
+﻿using ISIvanti.Client.Interfaces;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Utilities;
@@ -13,7 +11,7 @@ public class AgentService
 #if DEBUG
     private const string ApiHost = "https://localhost:8123/api";
 #else
-    private const string ApiHost = "/api";
+    private const string ApiHost = "https://isipatch.idealstandard.com:8123/api";
 #endif
 
     private readonly IAgentService _api;
@@ -38,7 +36,7 @@ public class AgentService
 
         return new AgentContextDto();
     }
-    
+
     public async Task<string?> PostExecuteJobAsync(ActionDto action)
     {
         try
@@ -86,5 +84,37 @@ public class AgentService
         }
 
         return new JobContextDto();
+    }
+
+    public async Task<List<string>?> PostExecuteJobsAsync(List<ActionDto> actions)
+    {
+        try
+        {
+            var response = await _api.PostExecuteJobsAsync(actions);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.DeserializeHttpResponseContentAsync<List<string>>();
+        }
+        catch (ApiException e)
+        {
+            Console.WriteLine($"API->Failed to post jobs execution: {e.Message}");
+        }
+
+        return null;
+    }
+
+    public async Task<List<string>?> GetAgentGroups()
+    {
+        try
+        {
+            var response = await _api.GetAgentGroups();
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.DeserializeHttpResponseContentAsync<List<string>>();
+        }
+        catch (ApiException e)
+        {
+            Console.WriteLine($"API->Failed to get policy groups: {e.Message}");
+        }
+
+        return null;
     }
 }

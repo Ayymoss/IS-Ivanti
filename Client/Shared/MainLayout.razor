@@ -5,7 +5,7 @@
 
 @inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="false" Theme="_theme"/>
+<MudThemeProvider Theme="_theme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 <MudBreakpointProvider/>
@@ -13,9 +13,9 @@
 <MudLayout>
     <MudAppBar Elevation="2" Dense="true" Class="d-flex">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
-        <MudText Typo="Typo.h5" Class="ml-3">ISIvanti</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">ISI Patch</MudText>
         <MudSpacer/>
-        <MudIconButton Class="mr-2" Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Ayymoss/ISIvanti" Target="_blank"/>
+        <MudIconButton Class="mr-2" Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Ayymoss/IS-Ivanti" Target="_blank"/>
         @if (_user is not null)
         {
             <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Size="Size.Small" OnClick="Logout" Color="Color.Error">@_user</MudButton>

@@ -1,4 +1,5 @@
-﻿using ISIvanti.Server.Context;
+﻿using System.Net;
+using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Models;
 using ISIvanti.Server.Models.IvantiModels;
@@ -6,6 +7,7 @@ using ISIvanti.Server.Models.LocalModels;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Enums;
+using ISIvanti.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Task = System.Threading.Tasks.Task;
@@ -19,7 +21,8 @@ public class AgentService : IAgentService
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public AgentService(IvantiDataContext ivantiContext, LocalDataContext localContext, IBackgroundTaskQueue taskQueue, IServiceScopeFactory serviceScopeFactory)
+    public AgentService(IvantiDataContext ivantiContext, LocalDataContext localContext, IBackgroundTaskQueue taskQueue,
+        IServiceScopeFactory serviceScopeFactory)
     {
         _ivantiContext = ivantiContext;
         _localContext = localContext;
@@ -30,29 +33,32 @@ public class AgentService : IAgentService
     public async Task<AgentContextDto> AgentPaginationAsync(PaginationDto pagination)
     {
         var query = _ivantiContext.ManagedMachines
-            //.Where(machine => machine.LastUpdated >= DateTime.Today.AddDays(-30))
-            .GroupJoin(_ivantiContext.XtrCurrentPatchCounts,
-                machine => machine.MmKey,
-                patch => patch.Machineid,
-                (machine, patches) => new AgentDto
-                {
-                    MachineId = machine.MmKey,
-                    MachineName = machine.Name,
-                    AssignedGroup = machine.AssignedGroup,
-                    LastUpdated = machine.LastUpdated,
-                    PatchesInstalled = patches.Sum(patch => patch.Installedcnt ?? 0),
-                    PatchesMissing = patches.Sum(patch => patch.Notinstalledcnt ?? 0),
-                    PatchesInstalledPercentage = patches.Any(patch => patch.Notinstalledcnt.HasValue && patch.Notinstalledcnt.Value > 0)
-                        ? patches.Sum(patch => patch.Installedcnt ?? 0) / (float)(patches.Sum(patch => patch.Installedcnt ?? 0) +
-                                                                                  patches.Sum(patch => patch.Notinstalledcnt ?? 0)) * 100
-                        : 100
-                });
+            .Select(machine => new AgentDto
+            {
+                MachineId = machine.MmKey,
+                MachineName = machine.Name,
+                ProductName = machine.MmOs.Spplprod.ProdName,
+                ProductVersion = machine.MmOs.Spplsp.SpName,
+                AssignedGroup = machine.AssignedGroup,
+                LastUpdated = machine.LastUpdated,
+                PatchesInstalled = machine.MachineMeasure.InstalledPatches ?? 0,
+                PatchesMissing = machine.MachineMeasure.MissingPatches + machine.MachineMeasure.MissingServicePacks ?? 0,
+                PatchesInstalledPercentage = (machine.MachineMeasure.MissingPatches ?? 0) +
+                    (machine.MachineMeasure.MissingServicePacks ?? 0) + (machine.MachineMeasure.InstalledPatches ?? 0) > 0
+                        ? (float)(machine.MachineMeasure.InstalledPatches ?? 0) * 100 /
+                          ((machine.MachineMeasure.MissingPatches ?? 0) + (machine.MachineMeasure.MissingServicePacks ?? 0) +
+                           (machine.MachineMeasure.InstalledPatches ?? 0))
+                        : 0
+            });
+
 
         if (!string.IsNullOrWhiteSpace(pagination.SearchString))
         {
             query = query.Where(search =>
-                EF.Functions.Like(search.MachineName, $"%{pagination.SearchString}%") ||
-                EF.Functions.Like(search.AssignedGroup ?? "unknown", $"%{pagination.SearchString}%"));
+                EF.Functions.Like(search.MachineName ?? string.Empty, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.ProductName ?? string.Empty, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.ProductVersion ?? string.Empty, $"%{pagination.SearchString}%") ||
+                EF.Functions.Like(search.AssignedGroup ?? string.Empty, $"%{pagination.SearchString}%"));
         }
 
         query = pagination.SortLabel switch
@@ -61,6 +67,9 @@ public class AgentService : IAgentService
             "Name" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.MachineName),
             "Group" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.AssignedGroup),
             "LastUpdated" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.LastUpdated),
+            "ProductName" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.ProductName),
+            "ProductVersion" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.ProductVersion),
+            "MissingPatches" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.PatchesMissing),
             "Percentage" => query.OrderByDirection((SortDirection)pagination.SortDirection!, entity => entity.PatchesInstalledPercentage),
             _ => query
         };
@@ -109,6 +118,18 @@ public class AgentService : IAgentService
         return agent;
     }
 
+    public async Task<List<string?>> GetAgentGroups()
+    {
+        var list = await _ivantiContext.ManagedMachines
+            .Select(x => x.AssignedGroup)
+            .Where(x => x != null)
+            .Distinct()
+            .ToListAsync();
+
+        var orderedList = list.Order().ToList();
+        return orderedList;
+    }
+
     public async Task<Guid?> SetupExecuteJob(ActionDto action, IvantiApi api, string adminName)
     {
         Guid? guid = null;
@@ -120,13 +141,14 @@ public class AgentService : IAgentService
                 Guid = Guid.NewGuid(),
                 TaskName = action.TaskName,
                 State = State.Running,
+                StateResult = HttpStatusCode.PartialContent,
                 AgentName = action.AgentName,
                 Created = DateTime.UtcNow,
             };
             _localContext.Jobs.Add(job);
             await _localContext.SaveChangesAsync();
             guid = job.Guid;
-            
+
             var jobParam = new BackgroundJob
             {
                 Job = job,
@@ -139,7 +161,6 @@ public class AgentService : IAgentService
                 var jobBackgroundTask = scope.ServiceProvider.GetRequiredService<JobBackgroundTask>();
                 await jobBackgroundTask.ExecuteAsync(jobParam);
             });
-            
         }
         catch (Exception e)
         {
@@ -171,6 +192,7 @@ public class AgentService : IAgentService
             "Created" => query.OrderByDirection((SortDirection)pagination.SortDirection!, key => key.Created),
             "Completed" => query.OrderByDirection((SortDirection)pagination.SortDirection!, key => key.Completed),
             "State" => query.OrderByDirection((SortDirection)pagination.SortDirection!, key => key.State),
+            "StateResult" => query.OrderByDirection((SortDirection)pagination.SortDirection!, key => key.StateResult),
             _ => query
         };
 
@@ -185,6 +207,7 @@ public class AgentService : IAgentService
                 Guid = job.Guid,
                 TaskName = job.TaskName,
                 State = job.State,
+                StateResult = job.StateResult,
                 AgentName = job.AgentName,
                 Created = job.Created,
                 Completed = job.Completed
@@ -197,26 +220,5 @@ public class AgentService : IAgentService
         };
 
         return context;
-    }
-
-    private async Task ExecuteJobAsync(EFJob job, ActionDto action, IvantiApi api)
-    {
-        try
-        {
-            var agentId = await GetAgentIdAsync(action.MachineId);
-            action.AgentId = BitConverter.ToString(agentId.AgentId).Replace("-", "");
-            var result = await api.PostExecuteCheckInAsync(action);
-            job.State = result ? State.Completed : State.Failed;
-            job.Completed = DateTime.UtcNow;
-            _localContext.Jobs.Update(job);
-            await _localContext.SaveChangesAsync();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Job Async Issue! {0}", e);
-            job.State = State.Failed;
-            _localContext.Jobs.Update(job);
-            await _localContext.SaveChangesAsync();
-        }
     }
 }

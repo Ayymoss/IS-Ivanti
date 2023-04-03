@@ -14,12 +14,12 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-
+#if DEBUG
 builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)});
+#else 
+builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri("https://isipatch.idealstandard.com:8123/")});
+#endif
 
-//builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri("")});
-
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<CookieHandler>();

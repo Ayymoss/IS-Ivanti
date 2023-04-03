@@ -19,4 +19,10 @@ public interface IAgentService
 
     [Post("/Agent/Jobs")]
     Task<HttpResponseMessage> PostJobPaginationAsync([Body] PaginationDto pagination);
+
+    [Post("/Agent/ExecuteJobs")]
+    Task<HttpResponseMessage> PostExecuteJobsAsync([Body] List<ActionDto> actions);
+
+    [Get("/Agent/PolicyGroups")]
+    Task<HttpResponseMessage> GetAgentGroups();
 }

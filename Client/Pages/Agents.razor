@@ -3,19 +3,74 @@
 @inject AgentService AgentService
 @attribute [Authorize]
 
-<PageTitle>Agents | ISIvanti</PageTitle>
+<PageTitle>Agents | ISI Patch</PageTitle>
 
 <MudStack Spacing="0">
-    <MudPaper Elevation="2" Class="d-flex flex-row justify-content-between align-center pa-4 rounded-b-0">
-        <MudText Typo="Typo.h4" Align="Align.Center" Class="mud-text-secondary">Agents</MudText>
-        <MudElement Class="ml-2 mt-0">
+    <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Class="mud-text-secondary mr-4">
+            Agents
+        </MudText>
+        <MudButton Class="mr-4"
+                   Variant="Variant.Filled"
+                   OnClick="ToggleMultiSelect"
+                   Color="_multiSelectButtonColour">
+            @(_multiSelectActive ? "MultiSelect On" : "MultiSelect Off")
+        </MudButton>
+        <MudButton Class="mr-4"
+                   Variant="Variant.Filled"
+                   OnClick="OnClearSelected"
+                   Disabled="@(!_selectedItems.Any())"
+                   Color="Color.Info">
+            Clear Selected
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                   OnClick="OnBulkActionClick"
+                   Disabled="@(!_bulkActionsActive)"
+                   Color="Color.Warning">
+            Multi Actions @(_selectedItems.Any() ? $"({_selectedItems.Count})" : string.Empty)
+        </MudButton>
+        <MudSpacer/>
+        <MudMenu class="mr-4"
+                 Dense="true"
+                 MaxHeight="600"
+                 AnchorOrigin="Origin.BottomLeft"
+                 TransformOrigin="Origin.TopLeft">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled"
+                           Disabled="@(!_groupPolicies.Any())"
+                           Color="Color.Primary"
+                           EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                           IconSize="Size.Large">
+                    Filters
+                </MudButton>
+            </ActivatorContent>
+            <ChildContent>
+                @foreach (var policy in _groupPolicies)
+                {
+                    <MudMenuItem OnClick="@(() => OnPolicyGroupClick(policy))">@policy</MudMenuItem>
+                }
+            </ChildContent>
+        </MudMenu>
+        <MudButton Class="mr-4"
+                   Variant="Variant.Filled"
+                   OnClick="OnClearFilterClick"
+                   Disabled="@(!_filterActive)"
+                   Color="Color.Info">
+            Clear Filter
+        </MudButton>
+        <MudElement Class="mt-0">
             <MudTextField T="string"
-                          Placeholder="Filter"
+                          Label="Filter"
                           Variant="Variant.Outlined"
+                          Value="_searchString"
                           ValueChanged="OnSearch"
                           AutoFocus="false"
                           Adornment="Adornment.End"
                           Margin="Margin.Dense"
+                          Disabled="_multiSelectActive"
+                          AdornmentColor="Color.Info"
                           AdornmentIcon="@Icons.Material.Filled.Search"/>
         </MudElement>
     </MudPaper>
@@ -23,41 +78,78 @@
               HeaderClass="mud-theme-info"
               Outlined="false"
               Bordered="false"
+              MultiSelection="_multiSelectActive"
+              SelectedItems="_selectedItems"
+              SelectedItemsChanged="OnSelectedItemsChanged"
               Loading="_loading"
               LoadingProgressColor="Color.Info"
               OnRowClick="AgentRowClickEvent"
               T="AgentDto"
+              HorizontalScrollbar="true"
               ServerData="@(new Func<TableState, Task<TableData<AgentDto>>>(ServerReload))"
               Elevation="2"
-              RowsPerPage="20"
               Dense="true"
+              @bind-RowsPerPage="_rowsPerPage"
               @ref="_table">
         <HeaderContent>
             <MudTh Class="py-2">
-                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="Name" T="AgentDto">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="ProductName" T="AgentDto">OS</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="ProductVersion" T="AgentDto">SP</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="Group" T="AgentDto">Group</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="LastUpdated" T="AgentDto">Last Updated</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="LastUpdated" T="AgentDto">
+                    <MudText Style="white-space: nowrap;" Typo="Typo.body2">Last Updated</MudText>
+                </MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortLabel="Percentage" T="AgentDto">Health</MudTableSortLabel>
+                <MudTableSortLabel InitialDirection="SortDirection.Descending" SortLabel="MissingPatches" T="AgentDto">
+                    <MudText Style="white-space: nowrap;" Typo="Typo.body2">Missing Patches</MudText>
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="Percentage" T="AgentDto">
+                    <MudText Style="white-space: nowrap;" Typo="Typo.body2" Class="mr-1">Health</MudText>
+                    <MudTooltip Arrow="true" Placement="Placement.Top" Text="Missing Patches / Total Patches" RootClass="d-flex">
+                        <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Info"/>
+                    </MudTooltip>
+                </MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Name">@context.MachineName.ToUpper()</MudTd>
-            <MudTd DataLabel="AssignedGroup">@context.AssignedGroup</MudTd>
-            <MudTd DataLabel="LastUpdated">@context.LastUpdated.Humanize()</MudTd>
+            <MudTd DataLabel="Name">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.MachineName?.ToUpper()</MudText>
+            </MudTd>
+            <MudTd DataLabel="ProductName">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.ProductName</MudText>
+            </MudTd>
+            <MudTd DataLabel="ProductVersion">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.ProductVersion</MudText>
+            </MudTd>
+            <MudTd DataLabel="AssignedGroup">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.AssignedGroup</MudText>
+            </MudTd>
+            <MudTd DataLabel="LastUpdated">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.LastUpdated.Humanize()</MudText>
+            </MudTd>
+            <MudTd DataLabel="MissingPatches">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.PatchesMissing</MudText>
+            </MudTd>
             <MudTd DataLabel="Health">
-                <MudProgressLinear Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
-                    <MudText Typo="Typo.caption" Color="Color.Dark">@Math.Floor(context.PatchesInstalledPercentage)%</MudText>
+                <MudProgressLinear Style="width: 100%; min-width: 250px;" Color="ProgressColor(context.PatchesInstalledPercentage)" Rounded="true" Size="Size.Large" Value="context.PatchesInstalledPercentage">
+                    <MudText Typo="Typo.caption" Color="Color.Dark">@(string.Format($"{context.PatchesInstalledPercentage:N1}%")) (@context.PatchesMissing/@(context.PatchesMissing + context.PatchesInstalled))</MudText>
                 </MudProgressLinear>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText Class="mb-8" Color="Color.Warning">No agents found.</MudText>
+            <MudText>No agents found</MudText>
         </NoRecordsContent>
         <LoadingContent>
             <MudText>Loading...</MudText>
@@ -70,11 +162,23 @@
 
 
 @code {
+    private readonly HashSet<AgentDto> _selectedItems = new();
     private MudTable<AgentDto>? _table;
     private string? _searchString;
     private IEnumerable<AgentDto>? _pagedData;
+    private List<string> _groupPolicies = new();
+    private int _rowsPerPage = 20;
     private int _totalItems;
     private bool _loading = true;
+    private bool _multiSelectActive;
+    private bool _bulkActionsActive;
+    private bool _filterActive;
+    private Color _multiSelectButtonColour = Color.Info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _groupPolicies = await AgentService.GetAgentGroups() ?? new List<string>();
+    }
 
     private async Task<TableData<AgentDto>> ServerReload(TableState state)
     {
@@ -94,16 +198,67 @@
         return new TableData<AgentDto> {TotalItems = _totalItems, Items = _pagedData};
     }
 
+    private void OnSelectedItemsChanged(HashSet<AgentDto> elements)
+    {
+        if (!_multiSelectActive) return;
+        _bulkActionsActive = _selectedItems.Count >= 2;
+        var last = elements.LastOrDefault();
+        if (_selectedItems.Any(x => x.AssignedGroup != last?.AssignedGroup) || !_selectedItems.Any()) _selectedItems.Clear();
+        else OnSearch(last?.AssignedGroup ?? string.Empty);
+    }
+
+    private async Task OnBulkActionClick()
+    {
+        var parameters = new DialogParameters
+        {
+            {"Agents", _selectedItems.ToList()},
+        };
+
+        var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Medium, CloseOnEscapeKey = true};
+        var title = $"Actions for {_selectedItems.Count} computers";
+        await DialogService.ShowAsync<BulkAgentOptions>(title, parameters, options);
+    }
+
+    private async Task AgentRowClickEvent(TableRowClickEventArgs<AgentDto> clickEvent)
+    {
+        var parameters = new DialogParameters
+        {
+            {"Agent", clickEvent.Item},
+        };
+
+        var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Small, CloseOnEscapeKey = true};
+        var onlineState = clickEvent.Item.LastUpdated + TimeSpan.FromHours(2) > DateTimeOffset.UtcNow;
+        var title = $"Actions for {clickEvent.Item.MachineName} - {(onlineState ? "Probably Online" : "Possibly Offline")}";
+        await DialogService.ShowAsync<AgentOptions>(title, parameters, options);
+    }
+
+    private void ToggleMultiSelect()
+    {
+        _multiSelectActive = !_multiSelectActive;
+        _multiSelectButtonColour = _multiSelectActive ? Color.Success : Color.Info;
+        _selectedItems.Clear();
+        _bulkActionsActive = _selectedItems.Count >= 2;
+        OnSearch(string.Empty);
+    }
+
     private void OnSearch(string text)
     {
+        _filterActive = !string.IsNullOrEmpty(text);
+        if (_searchString == text) return;
         _searchString = text;
         _table!.ReloadServerData();
     }
+
+    private void OnClearSelected() => _selectedItems.Clear();
+    private void OnClearFilterClick() => OnSearch(string.Empty);
+    private void OnPolicyGroupClick(string item) => OnSearch(item);
 
     private static Color ProgressColor(float number)
     {
         switch (number)
         {
+            case 0:
+                return Color.Dark;
             case < 50:
                 return Color.Error;
             case < 90:
@@ -114,19 +269,6 @@
                 return Color.Success;
         }
         return Color.Default;
-    }
-
-    private async Task AgentRowClickEvent(TableRowClickEventArgs<AgentDto> clickEvent)
-    {
-        var parameters = new DialogParameters
-        {
-            {"Agent", clickEvent.Item},
-        };
-
-        var options = new DialogOptions {CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Medium, CloseOnEscapeKey = true};
-        var onlineState = clickEvent.Item.LastUpdated + TimeSpan.FromHours(2) > DateTimeOffset.UtcNow;
-        var title = $"Actions for {clickEvent.Item.MachineName} - {(onlineState ? "Online" : "Offline")}";
-        await DialogService.ShowAsync<AgentOptions>(title, parameters, options);
     }
 
 }

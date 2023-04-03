@@ -26,8 +26,8 @@ public class ApiClient
     {
         var user = _userManager.GetUserCredentials(identity);
         if (user is null) return null;
-        var apiHost = $"https://{_config.HostAndPort}/st/console/api/v1.0";
-        var credentials = new NetworkCredential(user.UserName, user.Password, _config.Domain);
+        var apiHost = $"https://{_config.ApiHostAndPort}/st/console/api/v1.0";
+        var credentials = new NetworkCredential(user.UserName, user.Password, _config.ApiReferenceDomain);
         var handler = new HttpClientHandler {Credentials = credentials};
         var api = RestClient.For<IIvantiApi>(apiHost, handler);
         return new IvantiApi(api, _logger);
