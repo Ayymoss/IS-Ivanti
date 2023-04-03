@@ -29,21 +29,20 @@
                    OnClick="OnBulkActionClick"
                    Disabled="@(!_bulkActionsActive)"
                    Color="Color.Warning">
-            Bulk Actions @(_selectedItems.Any() ? $"({_selectedItems.Count})" : string.Empty)
+            Multi Actions @(_selectedItems.Any() ? $"({_selectedItems.Count})" : string.Empty)
         </MudButton>
         <MudSpacer/>
-        <MudButton Class="mr-4"
-                   Variant="Variant.Filled"
-                   OnClick="OnClearFilterClick"
-                   Disabled="@(!_filterActive)"
-                   Color="Color.Info">
-            Clear Filter
-        </MudButton>
-        <MudMenu class="mr-4" Dense="true" MaxHeight="600" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+        <MudMenu class="mr-4"
+                 Dense="true"
+                 MaxHeight="600"
+                 AnchorOrigin="Origin.BottomLeft"
+                 TransformOrigin="Origin.TopLeft">
             <ActivatorContent>
                 <MudButton Variant="Variant.Filled"
                            Disabled="@(!_groupPolicies.Any())"
-                           Color="Color.Primary">
+                           Color="Color.Primary"
+                           EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                           IconSize="Size.Large">
                     Filters
                 </MudButton>
             </ActivatorContent>
@@ -54,6 +53,13 @@
                 }
             </ChildContent>
         </MudMenu>
+        <MudButton Class="mr-4"
+                   Variant="Variant.Filled"
+                   OnClick="OnClearFilterClick"
+                   Disabled="@(!_filterActive)"
+                   Color="Color.Info">
+            Clear Filter
+        </MudButton>
         <MudElement Class="mt-0">
             <MudTextField T="string"
                           Label="Filter"
