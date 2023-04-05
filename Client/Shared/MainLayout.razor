@@ -2,6 +2,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ILocalStorageService LocalStorageService
 @inject IApiService ApiLogic
+@inject SystemService SystemService
 
 @inherits LayoutComponentBase
 
@@ -10,7 +11,7 @@
 <MudSnackbarProvider/>
 <MudBreakpointProvider/>
 
-<MudLayout>
+<MudLayout Style="height: 100vh">
     <MudAppBar Elevation="2" Dense="true" Class="d-flex">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
         <MudText Typo="Typo.h5" Class="ml-3">ISI Patch</MudText>
@@ -28,10 +29,21 @@
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu/>
     </MudDrawer>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-4 pt-4">
-            @Body
-        </MudContainer>
+    <MudMainContent Style="height: 100%">
+        <MudStack Style="height: 100%">
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-4 py-4">
+                @Body
+            </MudContainer>
+            <MudSpacer/>
+            @if (_systemMessage?.Message is not null)
+            {
+                <MudAlert Class="ma-2"
+                          Severity="_systemMessage.Severity"
+                          ContentAlignment="HorizontalAlignment.Center">
+                    @_systemMessage.Message
+                </MudAlert>
+            }
+        </MudStack>
     </MudMainContent>
 </MudLayout>
 
@@ -40,13 +52,14 @@
     private bool _drawerOpen = true;
     private void DrawerToggle() => _drawerOpen = !_drawerOpen;
     private string? _user;
+    private SystemMessageDto? _systemMessage;
 
     protected override async Task OnInitializedAsync()
     {
+        _systemMessage = await SystemService.GetSystemMessage() ?? new SystemMessageDto();
         var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
         _user = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
     }
-
 
     private async Task Logout()
     {

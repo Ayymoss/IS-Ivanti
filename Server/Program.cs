@@ -11,7 +11,7 @@ using Serilog;
 using Serilog.Events;
 
 var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-var file = File.ReadAllText(Path.Join(directory, "_Configuration.json"));
+var file = File.ReadAllText(Path.Join(directory, "Configuration", "_Configuration.json"));
 var configuration = JsonSerializer.Deserialize<Configuration>(file);
 if (configuration is null) return;
 
@@ -55,6 +55,7 @@ builder.Services.AddHostedService<BackgroundTaskService>();
 builder.Services.AddSingleton(configuration);
 builder.Services.AddSingleton<UserManager>();
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddSingleton<ISystemService, SystemService>();
 
 // Scoped
 builder.Services.AddScoped<ApiClient>();

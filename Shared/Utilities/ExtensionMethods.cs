@@ -23,8 +23,9 @@ public static class ExtensionMethods
         return statusCode switch
         {
             HttpStatusCode.OK => "Success",
-            HttpStatusCode.InternalServerError => "Unreachable",
-            HttpStatusCode.PartialContent => string.Empty,
+            HttpStatusCode.InternalServerError => "Unreachable", // Unreachable reply for Agent Task
+            HttpStatusCode.BadRequest => "Unreachable", // Unreachable reply for Check-in Task
+            HttpStatusCode.PartialContent => string.Empty, // Placeholder
             _ => statusCode.Humanize()
         };
     }
