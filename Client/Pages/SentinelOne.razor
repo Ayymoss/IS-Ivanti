@@ -1,0 +1,111 @@
+﻿@page "/SentinelOne"
+@using ISIvanti.Shared.Dtos.Sentinel
+@inject SentinelService SentinelService
+@attribute [Authorize]
+
+<PageTitle>Sentinel One | ISI Patch</PageTitle>
+
+<MudStack Spacing="0">
+    <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Class="mud-text-secondary mr-4">
+            Sentinel One Actions Required
+        </MudText>
+        <MudSpacer/>
+        <MudButton Class="mr-4"
+                   Variant="Variant.Filled"
+                   OnClick="OnClearFilterClick"
+                   Disabled="@(!_filterActive)"
+                   Color="Color.Info">
+            Clear Filter
+        </MudButton>
+        <MudElement Class="ml-2 mt-0">
+            <MudTextField T="string"
+                          Label="Filter"
+                          Variant="Variant.Outlined"
+                          Value="_searchString"
+                          ValueChanged="OnSearch"
+                          AutoFocus="false"
+                          Adornment="Adornment.End"
+                          Margin="Margin.Dense"
+                          AdornmentColor="Color.Info"
+                          AdornmentIcon="@Icons.Material.Filled.Search"/>
+        </MudElement>
+    </MudPaper>
+    <MudTable Striped="true"
+              HeaderClass="mud-theme-info"
+              Outlined="false"
+              Bordered="false"
+              Loading="_loading"
+              LoadingProgressColor="Color.Info"
+              ServerData="@(new Func<TableState, Task<TableData<SentinelComputerInfo>>>(ServerReload))"
+              Elevation="2"
+              RowsPerPage="20"
+              Dense="true"
+              @ref="_table">
+        <HeaderContent>
+            <MudTh Class="py-2">
+                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="computerName" T="SentinelComputerInfo">Computer</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortLabel="lastLoggedInUserName" T="SentinelComputerInfo">Username</MudTableSortLabel>
+            </MudTh>
+            <MudTh>Last IP</MudTh>
+            <MudTh>Actions Needed</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ComputerName">@context.ComputerName?.ToUpper()</MudTd>
+            <MudTd DataLabel="LastLoggedInUserName">@context.LastLoggedInUserName</MudTd>
+            <MudTd DataLabel="LastIpToMgmt">@context.LastIpToMgmt</MudTd>
+            <MudTd DataLabel="Actions">@string.Join(", ", context.UserActionsNeeded.Select(x=>x.Replace('_', ' ').Titleize()))</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Class="my-4">No agents found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new[] {20, 50, 100}"/>
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+    private MudTable<SentinelComputerInfo>? _table;
+    private string? _searchString;
+    private IEnumerable<SentinelComputerInfo>? _pagedData;
+    private int _totalItems;
+    private bool _loading = true;
+    private bool _filterActive;
+
+    private async Task<TableData<SentinelComputerInfo>> ServerReload(TableState state)
+    {
+        var paginationQuery = new PaginationDto
+        {
+            Page = state.Page,
+            PageSize = state.PageSize,
+            SortLabel = state.SortLabel,
+            SortDirection = (int)state.SortDirection,
+            SearchString = _searchString,
+        };
+
+        var result = await SentinelService.PostPagination(paginationQuery);
+        _pagedData = result.Data?.ToList();
+        _totalItems = result.Pagination?.TotalItems ?? 0;
+        _loading = false;
+        return new TableData<SentinelComputerInfo> {TotalItems = _totalItems, Items = _pagedData};
+    }
+
+    private void OnSearch(string text)
+    {
+        _filterActive = !string.IsNullOrEmpty(text);
+        if (_searchString == text) return;
+        _searchString = text;
+        _table!.ReloadServerData();
+    }
+
+    private void OnClearFilterClick() => OnSearch(string.Empty);
+
+}

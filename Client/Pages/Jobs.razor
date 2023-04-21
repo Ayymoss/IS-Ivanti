@@ -16,14 +16,23 @@
                 OnClick="OnRefreshButtonClick"
                 StartIcon="@Icons.Material.Filled.Refresh"/>
         <MudSpacer/>
+        <MudButton Class="mr-4"
+                   Variant="Variant.Filled"
+                   OnClick="OnClearFilterClick"
+                   Disabled="@(!_filterActive)"
+                   Color="Color.Info">
+            Clear Filter
+        </MudButton>
         <MudElement Class="ml-2 mt-0">
             <MudTextField T="string"
-                          Placeholder="Filter"
+                          Label="Filter"
                           Variant="Variant.Outlined"
+                          Value="_searchString"
                           ValueChanged="OnSearch"
                           AutoFocus="false"
                           Adornment="Adornment.End"
                           Margin="Margin.Dense"
+                          AdornmentColor="Color.Info"
                           AdornmentIcon="@Icons.Material.Filled.Search"/>
         </MudElement>
     </MudPaper>
@@ -101,6 +110,8 @@
     private IEnumerable<JobDto>? _pagedData;
     private int _totalItems;
     private bool _loading = true;
+    private bool _filterActive;
+    private int _defaultNameCount = 0;
     private Timer? _timer;
 
     protected override Task OnInitializedAsync()
@@ -124,6 +135,15 @@
 
     private async Task<TableData<JobDto>> ServerReload(TableState state)
     {
+        // I need to find a better way of doing this. 
+        //if (_defaultNameCount < 2 && string.IsNullOrEmpty(_searchString))
+        //{
+        //    var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
+        //    var userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        //    if (userName is not null) _searchString = userName;
+        //    _defaultNameCount++;
+        //}
+
         var paginationQuery = new PaginationDto
         {
             Page = state.Page,
@@ -142,8 +162,16 @@
 
     private void OnSearch(string text)
     {
+        _filterActive = !string.IsNullOrEmpty(text);
+        if (_searchString == text) return;
         _searchString = text;
         _table!.ReloadServerData();
+    }
+
+    private void OnClearFilterClick()
+    {
+        _defaultNameCount = 5;
+        OnSearch(string.Empty);
     }
 
     public void Dispose()

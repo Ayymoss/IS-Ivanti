@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Humanizer;
+using Serilog.Events;
 
 namespace ISIvanti.Shared.Utilities;
 
@@ -17,7 +18,7 @@ public static class ExtensionMethods
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<T>(json, jsonSerializerOptions);
     }
-    
+
     public static string StatusCodeToString(this HttpStatusCode statusCode)
     {
         return statusCode switch
@@ -27,6 +28,17 @@ public static class ExtensionMethods
             HttpStatusCode.BadRequest => "Unreachable", // Unreachable reply for Check-in Task
             HttpStatusCode.PartialContent => string.Empty, // Placeholder
             _ => statusCode.Humanize()
+        };
+    }
+
+    public static LogEventLevel StringToLogLevel(this string logLevel)
+    {
+        return logLevel switch
+        {
+            "Debug" => LogEventLevel.Debug,
+            "Warning" => LogEventLevel.Warning,
+            "Information" => LogEventLevel.Information,
+            _ => LogEventLevel.Information
         };
     }
 }

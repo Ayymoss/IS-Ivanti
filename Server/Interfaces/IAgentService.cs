@@ -1,5 +1,5 @@
 ﻿using ISIvanti.Server.Models.IvantiModels;
-using ISIvanti.Server.Services;
+using ISIvanti.Server.Services.Ivanti;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 

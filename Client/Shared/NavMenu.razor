@@ -6,8 +6,13 @@
         <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
         <AuthorizeView>
             <Authorized>
-                <MudNavLink Href="/Agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Agents</MudNavLink>
-                <MudNavLink Href="/Jobs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.HourglassTop">Jobs</MudNavLink>
+                <MudNavGroup Title="Ivanti" Icon="@Icons.Material.Filled.Shield" Expanded="true">
+                    <MudNavLink Href="/Agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Computer">Agents</MudNavLink>
+                    <MudNavLink Href="/Jobs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.HourglassTop">Background Jobs</MudNavLink>
+                </MudNavGroup>
+                <MudNavGroup Title="Sentinel One" Icon="@Icons.Material.Filled.Coronavirus" Expanded="true">
+                    <MudNavLink Href="/SentinelOne" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PendingActions">Actions Required</MudNavLink>
+                </MudNavGroup>
             </Authorized>
         </AuthorizeView>
     </MudNavMenu>

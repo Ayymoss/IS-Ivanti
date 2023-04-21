@@ -1,12 +1,11 @@
 ﻿using System.Net;
 using ISIvanti.Server.Interfaces.Ivanti;
-using ISIvanti.Server.Utilities;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Utilities;
 using RestEase;
 
-namespace ISIvanti.Server.Services;
+namespace ISIvanti.Server.Services.Ivanti;
 
 public class IvantiApi
 {
@@ -29,7 +28,7 @@ public class IvantiApi
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "GetVersionAsync failed");
+            _logger.LogError(e, "GetActionRequiredComputers failed");
         }
 
         return data;

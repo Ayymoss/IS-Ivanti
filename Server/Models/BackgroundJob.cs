@@ -1,5 +1,6 @@
 ﻿using ISIvanti.Server.Models.LocalModels;
 using ISIvanti.Server.Services;
+using ISIvanti.Server.Services.Ivanti;
 using ISIvanti.Shared.Dtos;
 
 namespace ISIvanti.Server.Models;

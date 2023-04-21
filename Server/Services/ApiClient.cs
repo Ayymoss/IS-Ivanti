@@ -2,6 +2,7 @@
 using ISIvanti.Server.Dtos;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Interfaces.Ivanti;
+using ISIvanti.Server.Services.Ivanti;
 using ISIvanti.Server.Utilities;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Account;

@@ -4,11 +4,12 @@ using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Services;
 using ISIvanti.Server.Services.Pages;
+using ISIvanti.Server.Services.Sentinel;
 using ISIvanti.Server.Utilities;
+using ISIvanti.Shared.Utilities;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Serilog.Events;
 
 var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 var file = File.ReadAllText(Path.Join(directory, "Configuration", "_Configuration.json"));
@@ -22,7 +23,7 @@ if (configuration.CertificatePath is not null && configuration.CertificatePasswo
     Console.WriteLine("Starting as HTTPS with Custom Certification");
     builder.WebHost.UseKestrel(options =>
     {
-        options.ListenAnyIP(8123, configure => 
+        options.ListenAnyIP(8123, configure =>
             configure.UseHttps(configuration.CertificatePath, configuration.CertificatePassword));
     });
 }
@@ -56,6 +57,8 @@ builder.Services.AddSingleton(configuration);
 builder.Services.AddSingleton<UserManager>();
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddSingleton<ISystemService, SystemService>();
+builder.Services.AddSingleton<ISentinelService, SentinelService>();
+builder.Services.AddSingleton<SentinelApi>();
 
 // Scoped
 builder.Services.AddScoped<ApiClient>();
@@ -66,13 +69,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 if (!Directory.Exists(Path.Join(AppContext.BaseDirectory, "Log")))
     Directory.CreateDirectory(Path.Join(AppContext.BaseDirectory, "Log"));
 
-var logLevel = configuration.LogLevel switch
-{
-    "Debug" => LogEventLevel.Debug,
-    "Warning" => LogEventLevel.Warning,
-    "Information" => LogEventLevel.Information,
-    _ => LogEventLevel.Information
-};
+var logLevel = configuration.LogLevel.StringToLogLevel();
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
