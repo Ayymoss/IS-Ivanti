@@ -46,19 +46,23 @@
               @ref="_table">
         <HeaderContent>
             <MudTh Class="py-2">
-                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="computerName" T="SentinelComputerInfo">Computer</MudTableSortLabel>
+                <MudTableSortLabel SortLabel="computerName" T="SentinelComputerInfo">Computer</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortLabel="lastLoggedInUserName" T="SentinelComputerInfo">Username</MudTableSortLabel>
             </MudTh>
             <MudTh>Last IP</MudTh>
+            <MudTh>
+                <MudTableSortLabel InitialDirection="SortDirection.Descending" SortLabel="updatedAt" T="SentinelComputerInfo">Last Reply</MudTableSortLabel>
+            </MudTh>
             <MudTh>Actions Needed</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ComputerName">@context.ComputerName?.ToUpper()</MudTd>
             <MudTd DataLabel="LastLoggedInUserName">@context.LastLoggedInUserName</MudTd>
             <MudTd DataLabel="LastIpToMgmt">@context.LastIpToMgmt</MudTd>
-            <MudTd DataLabel="Actions">@string.Join(", ", context.UserActionsNeeded.Select(x=>x.Replace('_', ' ').Titleize()))</MudTd>
+            <MudTd DataLabel="UpdatedAt">@context.UpdatedAt.Humanize()</MudTd>
+            <MudTd DataLabel="Actions">@string.Join(", ", context.UserActionsNeeded.Select(x => x.Replace('_', ' ').Titleize()))</MudTd>
         </RowTemplate>
         <NoRecordsContent>
             <MudText Class="my-4">No agents found</MudText>

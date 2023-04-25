@@ -1,7 +1,7 @@
 ﻿namespace ISIvanti.Server.Utilities;
 
 public class Configuration
-{ 
+{
     public required string ApiReferenceDomain { get; set; }
     public required string ApiHostAndPort { get; set; }
     public required string IvantiDatabaseConnectionString { get; set; }
@@ -9,4 +9,6 @@ public class Configuration
     public string? CertificatePath { get; set; }
     public string? CertificatePassword { get; set; }
     public required string LogLevel { get; set; } = "Warning";
+    public required string SentinelApi { get; set; }
+    public required string SentinelApiHost { get; set; }
 }
