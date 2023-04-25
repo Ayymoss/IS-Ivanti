@@ -73,10 +73,17 @@ public class AgentController : ControllerBase
     {
         return Accepted(await _agentService.JobPaginationAsync(pagination));
     }
-    
+
     [HttpGet("PolicyGroups")]
     public async Task<ActionResult<List<string>>> GetAgentGroups()
     {
         return Ok(await _agentService.GetAgentGroups());
+    }
+
+    [HttpGet("Statistics")]
+    public async Task<ActionResult<IvantiStatisticsDto>> GetStatistics()
+    {
+        var adminUserName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        return Ok(await _agentService.GetStatistics(adminUserName));
     }
 }

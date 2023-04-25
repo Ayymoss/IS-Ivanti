@@ -117,4 +117,20 @@ public class AgentService
 
         return null;
     }
+
+    public async Task<IvantiStatisticsDto?> GetStatistics()
+    {
+        try
+        {
+            var response = await _api.GetStatistics();
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.DeserializeHttpResponseContentAsync<IvantiStatisticsDto>();
+        }
+        catch (ApiException e)
+        {
+            Console.WriteLine($"API->Failed to get statistics: {e.Message}");
+        }
+
+        return null;
+    }
 }

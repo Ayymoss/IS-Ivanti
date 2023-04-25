@@ -3,6 +3,8 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ILocalStorageService LocalStorageService
+@inject SentinelService SentinelService
+@inject AgentService AgentService
 
 <PageTitle>Index | ISI Patch</PageTitle>
 
@@ -10,13 +12,47 @@
     <AuthorizeView>
         <Authorized>
             <MudContainer MaxWidth="MaxWidth.Small">
-                <MudPaper Class="pa-4">
-                    <MudStack Class="justify-center align-center">
-                        <MudText Typo="Typo.h4">Welcome, @_name</MudText>
-                        <MudDivider FlexItem="true" DividerType="DividerType.Middle" Light="true"/>
-                        <MudText Typo="Typo.caption">Please report any issues to the Security Team</MudText>
-                    </MudStack>
-                </MudPaper>
+                <MudStack>
+                    <MudPaper Elevation="8" Class="pa-4">
+                        <MudStack Class="justify-center align-center">
+                            <MudText Typo="Typo.h4">Welcome, @_name</MudText>
+                            <MudDivider FlexItem="true" DividerType="DividerType.Middle" Light="true"/>
+                            <MudText Typo="Typo.caption">Please report any issues to the Security Team</MudText>
+                        </MudStack>
+                    </MudPaper>
+                    <MudPaper Elevation="8" Class="pa-4 mt-4">
+                        <MudText Typo="Typo.h6" Align="Align.Center">Health</MudText>
+                        <MudGrid Spacing="2" Justify="Justify.FlexStart">
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_ivantiStatistics.MachinesUnderHealth:N0}")</MudText>
+                                    <MudText Class="mud-text-secondary">Ivanti Healthy Machines</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_sentinelStatistics.ActionRequiredCount:N0}")</MudText>
+                                    <MudText Class="mud-text-secondary">Sentinel Actions Required</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                        <MudText Class="mt-4" Typo="Typo.h6" Align="Align.Center">Admin Statistics</MudText>
+                        <MudGrid Spacing="2" Justify="Justify.FlexStart">
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_ivantiStatistics.TotalAdminJobsSubmitted:N0}")</MudText>
+                                    <MudText Class="mud-text-secondary">Ivanti Total Jobs Sent</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_ivantiStatistics.UserAdminJobsSubmitted:N0}")</MudText>
+                                    <MudText Class="mud-text-secondary">Ivanti Your Jobs Sent</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudStack>
             </MudContainer>
         </Authorized>
         <NotAuthorized>
@@ -74,6 +110,8 @@
 {
     private string? _error;
     private LoginRequestDto _login = new();
+    private SentinelStatisticsDto? _sentinelStatistics;
+    private IvantiStatisticsDto? _ivantiStatistics;
     private bool _processing;
     private bool _authorised;
     private bool _showPassword;
@@ -81,16 +119,17 @@
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
 
     private string _name = string.Empty;
-    private string _identity = string.Empty;
-
 
     protected override async Task OnInitializedAsync()
     {
         var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
-        _identity = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         _name = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            _sentinelStatistics = await SentinelService.GetStatistics() ?? new SentinelStatisticsDto();
+            _ivantiStatistics = await AgentService.GetStatistics() ?? new IvantiStatisticsDto();
+        }
     }
-
 
     private async Task OnKeyPress(KeyboardEventArgs e)
     {

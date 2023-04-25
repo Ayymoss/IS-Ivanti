@@ -25,4 +25,7 @@ public interface IAgentService
 
     [Get("/Agent/PolicyGroups")]
     Task<HttpResponseMessage> GetAgentGroups();
+
+    [Get("/Agent/Statistics")]
+    Task<HttpResponseMessage> GetStatistics();
 }

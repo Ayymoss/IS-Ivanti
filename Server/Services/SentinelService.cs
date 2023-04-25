@@ -31,4 +31,23 @@ public class SentinelService : ISentinelService
         var result = await _sentinelApi.GetActionRequiredComputers(limit, skip, sortBy, sortOrder, query, userActionsNeeded);
         return result;
     }
+
+    public async Task<SentinelStatisticsDto> GetStatistics()
+    {
+        var pagination = new PaginationDto
+        {
+            Page = 0,
+            PageSize = 1,
+            SortLabel = "computerName",
+            SortDirection = (int)SortDirection.Descending,
+            SearchString = string.Empty
+        };
+        var result = await PaginationAsync(pagination);
+        var statistics = new SentinelStatisticsDto
+        {
+            ActionRequiredCount = result.Pagination?.TotalItems ?? 0
+        };
+
+        return statistics;
+    }
 }

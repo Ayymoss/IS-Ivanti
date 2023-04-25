@@ -131,6 +131,28 @@ public class AgentService : IAgentService
         return orderedList;
     }
 
+    public async Task<IvantiStatisticsDto?> GetStatistics(string userName)
+    {
+        var underHealth = await _ivantiContext.ManagedMachines
+            .Where(machine => (machine.MachineMeasure.MissingPatches ?? 0) +
+                              (machine.MachineMeasure.MissingServicePacks ?? 0) + (machine.MachineMeasure.InstalledPatches ?? 0) == 0 ||
+                              (float)(machine.MachineMeasure.InstalledPatches ?? 0) * 100 /
+                              ((machine.MachineMeasure.MissingPatches ?? 0) + (machine.MachineMeasure.MissingServicePacks ?? 0) +
+                               (machine.MachineMeasure.InstalledPatches ?? 0)) >= 98)
+            .CountAsync();
+
+        var totalJobs = await _localContext.Jobs.CountAsync();
+        var userJobs = await _localContext.Jobs.Where(x => x.AgentName == userName).CountAsync();
+
+        var statistics = new IvantiStatisticsDto
+        {
+            MachinesUnderHealth = underHealth,
+            TotalAdminJobsSubmitted = totalJobs,
+            UserAdminJobsSubmitted = userJobs
+        };
+        return statistics;
+    }
+
     public async Task<Guid?> SetupExecuteJob(ActionDto action, IvantiApi api, string adminName)
     {
         Guid? guid = null;

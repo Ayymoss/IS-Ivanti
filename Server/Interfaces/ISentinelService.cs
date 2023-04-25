@@ -6,4 +6,5 @@ namespace ISIvanti.Server.Interfaces;
 public interface ISentinelService
 {
     Task<SentinelDto> PaginationAsync(PaginationDto pagination);
+    Task<SentinelStatisticsDto> GetStatistics();
 }

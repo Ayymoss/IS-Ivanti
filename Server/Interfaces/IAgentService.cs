@@ -13,4 +13,5 @@ public interface IAgentService
     Task<JobContextDto> JobPaginationAsync(PaginationDto pagination);
     Task<Agent?> GetAgentIdAsync(int machineId);
     Task<List<string?>> GetAgentGroups();
+    Task<IvantiStatisticsDto?> GetStatistics(string userName);
 }

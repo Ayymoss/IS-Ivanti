@@ -36,4 +36,20 @@ public class SentinelService
 
         return new SentinelDto();
     }
+
+    public async Task<SentinelStatisticsDto?> GetStatistics()
+    {
+        try
+        {
+            var response = await _api.GetStatistics();
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.DeserializeHttpResponseContentAsync<SentinelStatisticsDto>();
+        }
+        catch (ApiException e)
+        {
+            Console.WriteLine($"API->Failed to get statistics: {e.Message}");
+        }
+
+        return null;
+    }
 }

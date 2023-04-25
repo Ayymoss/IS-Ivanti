@@ -23,4 +23,10 @@ public class SentinelController : ControllerBase
     {
         return Accepted(await _sentinelService.PaginationAsync(pagination));
     }
+
+    [HttpGet("Statistics")]
+    public async Task<ActionResult<IvantiStatisticsDto>> GetStatistics()
+    {
+        return Accepted(await _sentinelService.GetStatistics());
+    }
 }
