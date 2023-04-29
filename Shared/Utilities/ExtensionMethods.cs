@@ -7,7 +7,7 @@ namespace ISIvanti.Shared.Utilities;
 
 public static class ExtensionMethods
 {
-    public static async Task<T?> DeserializeHttpResponseContentAsync<T>(this HttpResponseMessage response) where T : class
+    public static async Task<TResponse?> DeserializeHttpResponseContentAsync<TResponse>(this HttpResponseMessage response) where TResponse : class
     {
         var jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -16,7 +16,7 @@ public static class ExtensionMethods
 
         if (!response.IsSuccessStatusCode) return null;
         var json = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<T>(json, jsonSerializerOptions);
+        return string.IsNullOrEmpty(json) ? null : JsonSerializer.Deserialize<TResponse>(json, jsonSerializerOptions);
     }
 
     public static string StatusCodeToString(this HttpStatusCode statusCode)

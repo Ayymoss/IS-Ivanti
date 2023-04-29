@@ -11,47 +11,61 @@
 <MudStack Spacing="2">
     <AuthorizeView>
         <Authorized>
-            <MudContainer MaxWidth="MaxWidth.Small">
+            <MudContainer MaxWidth="MaxWidth.Medium">
                 <MudStack>
                     <MudPaper Elevation="8" Class="pa-4">
                         <MudStack Class="justify-center align-center">
-                            <MudText Typo="Typo.h4">Welcome, @_name</MudText>
+                            <MudText Typo="Typo.h4">Welcome, @CapitaliseName(_name)</MudText>
                             <MudDivider FlexItem="true" DividerType="DividerType.Middle" Light="true"/>
                             <MudText Typo="Typo.caption">Please report any issues to the Security Team</MudText>
                         </MudStack>
                     </MudPaper>
-                    <MudPaper Elevation="8" Class="pa-4 mt-4">
-                        <MudText Typo="Typo.h6" Align="Align.Center">Health</MudText>
-                        <MudGrid Spacing="2" Justify="Justify.FlexStart">
-                            <MudItem xs="12" sm="6">
+                    @if (_sentinelStatistics is not null && _ivantiStatistics is not null)
+                    {
+                        <MudPaper Elevation="8" Class="pa-4 mt-4">
+                            <MudText Typo="Typo.h6" Align="Align.Center">Health</MudText>
+                            <MudGrid Spacing="2" Justify="Justify.FlexStart">
+                                <MudItem xs="12" sm="6">
+                                    <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@($"{_ivantiStatistics.MachinesUnderHealth:N0}")</MudText>
+                                        <MudText Class="mud-text-secondary">Ivanti Healthy Machines</MudText>
+                                    </MudPaper>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@($"{_sentinelStatistics.ActionRequiredCount:N0}")</MudText>
+                                        <MudText Class="mud-text-secondary">Sentinel Actions Required</MudText>
+                                    </MudPaper>
+                                </MudItem>
+                            </MudGrid>
+                            <MudText Class="mt-4" Typo="Typo.h6" Align="Align.Center">Admin Statistics</MudText>
+                            <MudGrid Spacing="2" Justify="Justify.FlexStart">
+                                <MudItem xs="12" sm="6">
+                                    <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@($"{_ivantiStatistics.TotalAdminJobsSubmitted:N0}")</MudText>
+                                        <MudText Class="mud-text-secondary">Ivanti Total Jobs Sent</MudText>
+                                    </MudPaper>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
+                                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@($"{_ivantiStatistics.UserAdminJobsSubmitted:N0}")</MudText>
+                                        <MudText Class="mud-text-secondary">Ivanti Your Jobs Sent</MudText>
+                                    </MudPaper>
+                                </MudItem>
+                            </MudGrid>
+                            @if (_showChart)
+                            {
+                                <MudText Class="mt-4" Typo="Typo.h6" Align="Align.Center">Patch Health - Week</MudText>
                                 <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
-                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_ivantiStatistics.MachinesUnderHealth:N0}")</MudText>
-                                    <MudText Class="mud-text-secondary">Ivanti Healthy Machines</MudText>
+                                    <MudChart ChartType="ChartType.Line" ChartSeries="_series" XAxisLabels="_xAxisLabels" Width="100%" ChartOptions="_options">
+                                        <CustomGraphics>
+                                            <style>.mud-chart-line {overflow: visible;}</style>
+                                        </CustomGraphics>
+                                    </MudChart>
                                 </MudPaper>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
-                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_sentinelStatistics.ActionRequiredCount:N0}")</MudText>
-                                    <MudText Class="mud-text-secondary">Sentinel Actions Required</MudText>
-                                </MudPaper>
-                            </MudItem>
-                        </MudGrid>
-                        <MudText Class="mt-4" Typo="Typo.h6" Align="Align.Center">Admin Statistics</MudText>
-                        <MudGrid Spacing="2" Justify="Justify.FlexStart">
-                            <MudItem xs="12" sm="6">
-                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
-                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_ivantiStatistics.TotalAdminJobsSubmitted:N0}")</MudText>
-                                    <MudText Class="mud-text-secondary">Ivanti Total Jobs Sent</MudText>
-                                </MudPaper>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudPaper Class="d-flex justify-center flex-column align-self-center pa-4" Elevation="4">
-                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">@(_ivantiStatistics is null ? "Loading..." : $"{_ivantiStatistics.UserAdminJobsSubmitted:N0}")</MudText>
-                                    <MudText Class="mud-text-secondary">Ivanti Your Jobs Sent</MudText>
-                                </MudPaper>
-                            </MudItem>
-                        </MudGrid>
-                    </MudPaper>
+                            }
+                        </MudPaper>
+                    }
                 </MudStack>
             </MudContainer>
         </Authorized>
@@ -63,7 +77,7 @@
                         <MudTextField @bind-Value="_login.UserName"
                                       AutoFocus="true"
                                       Immediate="true"
-                                      Label="User Name"
+                                      Label="Username"
                                       Variant="Variant.Text"
                                       AdornmentIcon="@Icons.Material.Filled.Person"
                                       Adornment="Adornment.End"
@@ -108,6 +122,13 @@
 
 @code
 {
+    // Mud Chart
+    private readonly ChartOptions _options = new();
+    private readonly List<ChartSeries> _series = new();
+    private string[]? _xAxisLabels;
+    private bool _showChart;
+
+    // Normals
     private string? _error;
     private LoginRequestDto _login = new();
     private SentinelStatisticsDto? _sentinelStatistics;
@@ -128,6 +149,19 @@
         {
             _sentinelStatistics = await SentinelService.GetStatistics() ?? new SentinelStatisticsDto();
             _ivantiStatistics = await AgentService.GetStatistics() ?? new IvantiStatisticsDto();
+
+            _options.InterpolationOption = InterpolationOption.NaturalSpline;
+            var data = _ivantiStatistics.HealthyChartAverage.Select(d => (double)d.Average).ToArray();
+            if (data.Length > 3)
+            {
+                _showChart = true;
+                _series.Add(new ChartSeries
+                {
+                    Name = "Machines",
+                    Data = data
+                });
+                _xAxisLabels = _ivantiStatistics.HealthyChartAverage.Select(x => $"{x.Week}").ToArray();
+            }
         }
     }
 
@@ -183,5 +217,15 @@
             _error = "Invalid or unprivileged access";
             _processing = false;
         }
+    }
+
+    private string CapitaliseName(string name)
+    {
+        var parts = name.Split('-');
+        if (parts.Length != 2) return name;
+        var secondPart = parts[1][..1].ToUpper() + parts[1][1..];
+        var lastChar = secondPart[^1].ToString().ToUpper();
+        secondPart = secondPart[..^1] + lastChar;
+        return secondPart;
     }
 }

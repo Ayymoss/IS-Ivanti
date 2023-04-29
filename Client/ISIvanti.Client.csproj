@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>2023.04.25.1</Version>
+    <Version>2023.04.28.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

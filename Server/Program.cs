@@ -51,6 +51,7 @@ builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite($"D
 builder.Services.AddDbContext<IvantiDataContext>(options =>
     options.UseSqlServer(configuration.IvantiDatabaseConnectionString));
 builder.Services.AddHostedService<BackgroundTaskService>();
+builder.Services.AddHostedService<StatisticsGatheringService>();
 
 // Singletons
 builder.Services.AddSingleton(configuration);

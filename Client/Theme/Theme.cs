@@ -2,7 +2,7 @@
 
 namespace ISIvanti.Client.Theme;
 
-public class Theme
+public static class Theme
 {
     public static MudTheme Primary()
     {

@@ -54,6 +54,27 @@ namespace ISIvanti.Server.Migrations
 
                     b.ToTable("EFJobs", (string)null);
                 });
+
+            modelBuilder.Entity("ISIvanti.Server.Models.LocalModels.EFStatistic", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("Submitted")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EFStatistics", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }

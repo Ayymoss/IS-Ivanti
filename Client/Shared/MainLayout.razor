@@ -3,7 +3,6 @@
 @inject ILocalStorageService LocalStorageService
 @inject IApiService ApiLogic
 @inject SystemService SystemService
-
 @inherits LayoutComponentBase
 
 <MudThemeProvider Theme="_theme"/>
@@ -48,7 +47,7 @@
 </MudLayout>
 
 @code {
-    private readonly MudTheme _theme = Theme.Theme.Primary();
+    private readonly MudTheme _theme = ISIvanti.Client.Theme.Theme.Primary();
     private bool _drawerOpen = true;
     private void DrawerToggle() => _drawerOpen = !_drawerOpen;
     private string? _user;

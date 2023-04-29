@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Models;
@@ -9,6 +10,7 @@ using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Enums;
 using ISIvanti.Shared.Utilities;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Task = System.Threading.Tasks.Task;
@@ -142,13 +144,30 @@ public class AgentService : IAgentService
             .CountAsync();
 
         var totalJobs = await _localContext.Jobs.CountAsync();
-        var userJobs = await _localContext.Jobs.Where(x => x.AgentName == userName).CountAsync();
+        // ReSharper disable once SpecifyStringComparison
+        var userJobs = await _localContext.Jobs.CountAsync(x => x.UserName.ToLower() == userName.ToLower());
+
+        var contextStats = await _localContext.Statistics.ToListAsync();
+        var oneYearAgo = DateTimeOffset.UtcNow.AddYears(-1);
+        var filteredStats = contextStats
+            .Where(s => s.Submitted >= oneYearAgo)
+            .ToList();
+
+        var groupedChartStats = filteredStats
+            .GroupBy(s => CultureInfo.CurrentCulture.Calendar
+                .GetWeekOfYear(s.Submitted.DateTime, CalendarWeekRule.FirstDay, DayOfWeek.Monday))
+            .OrderBy(g => g.Key)
+            .ToList();
+        var weeklyHealth = groupedChartStats
+            .Select(g => new HealthyAverageDto(g.Key, (decimal)g.Average(s => s.Count)))
+            .ToList();
 
         var statistics = new IvantiStatisticsDto
         {
             MachinesUnderHealth = underHealth,
             TotalAdminJobsSubmitted = totalJobs,
-            UserAdminJobsSubmitted = userJobs
+            UserAdminJobsSubmitted = userJobs,
+            HealthyChartAverage = weeklyHealth
         };
         return statistics;
     }
