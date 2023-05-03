@@ -49,6 +49,8 @@ public class JobBackgroundTask
         {
             Console.WriteLine("Job Async Issue! {0}", e);
             jobParam.Job.State = State.Failed;
+            jobParam.Job.StateResult = HttpStatusCode.NotFound;
+            jobParam.Job.Completed = DateTime.UtcNow;    
             _localContext.Jobs.Update(jobParam.Job);
             await _localContext.SaveChangesAsync();
         }

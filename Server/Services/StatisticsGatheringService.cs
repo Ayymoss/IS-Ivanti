@@ -16,7 +16,7 @@ public class StatisticsGatheringService : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _timer = new Timer(ExecuteQuery, null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        _timer = new Timer(ExecuteQuery, null, TimeSpan.Zero, TimeSpan.FromHours(4));
         return Task.CompletedTask;
     }
 
