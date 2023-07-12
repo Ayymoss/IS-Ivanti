@@ -4,6 +4,7 @@ using ISIvanti.Server.Context;
 using ISIvanti.Server.Interfaces;
 using ISIvanti.Server.Services;
 using ISIvanti.Server.Services.Pages;
+using ISIvanti.Server.Services.Proofpoint;
 using ISIvanti.Server.Services.Sentinel;
 using ISIvanti.Server.Utilities;
 using ISIvanti.Shared.Utilities;
@@ -44,7 +45,7 @@ else
 }
 
 #if DEBUG
-builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite($"Data Source=_Database.db"));
+builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite("Data Source=_Database.db"));
 #else
 builder.Services.AddDbContext<LocalDataContext>(options => options.UseSqlite($"Data Source={configuration.LocalDatabaseLocation}"));
 #endif
@@ -60,6 +61,8 @@ builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddSingleton<ISystemService, SystemService>();
 builder.Services.AddSingleton<ISentinelService, SentinelService>();
 builder.Services.AddSingleton<SentinelApi>();
+builder.Services.AddSingleton<IProofpointService, ProofpointService>();
+builder.Services.AddSingleton<ProofpointApi>();
 
 // Scoped
 builder.Services.AddScoped<ApiClient>();

@@ -15,14 +15,10 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
         <MudText Typo="Typo.h5" Class="ml-3">ISI Patch</MudText>
         <MudSpacer/>
-        <MudIconButton Class="mr-2" Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Ayymoss/IS-Ivanti" Target="_blank"/>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/Ayymoss/IS-Ivanti" Target="_blank"/>
         @if (_user is not null)
         {
-            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Size="Size.Small" OnClick="Logout" Color="Color.Error">@_user</MudButton>
-        }
-        else
-        {
-            <MudText>Not logged in...</MudText>
+            <MudButton Class="ml-2" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Size="Size.Small" OnClick="Logout" Color="Color.Error">@_role: @_user</MudButton>
         }
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
@@ -52,12 +48,14 @@
     private void DrawerToggle() => _drawerOpen = !_drawerOpen;
     private string? _user;
     private SystemMessageDto? _systemMessage;
+    private string? _role;
 
     protected override async Task OnInitializedAsync()
     {
         _systemMessage = await SystemService.GetSystemMessage() ?? new SystemMessageDto();
         var user = (await (AuthStateProvider as CustomAuthStateProvider)!.GetAuthenticationStateAsync()).User;
         _user = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        _role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
     }
 
     private async Task Logout()

@@ -15,16 +15,23 @@
                 </MudNavGroup>
             </Authorized>
         </AuthorizeView>
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <MudNavGroup Title="Proofpoint" Icon="@Icons.Material.Filled.Web" Expanded="true">
+                    <MudNavLink Href="/Proofpoint" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PendingActions">Isolated URLs</MudNavLink>
+                </MudNavGroup>
+            </Authorized>
+        </AuthorizeView>
     </MudNavMenu>
     <MudSpacer/>
     <MudStack Spacing="0">
-        <MudDivider Class="my-2" FlexItem="true" Light="true" DividerType="DividerType.Middle"/>
-        <MudText Align="Align.Center" Typo="Typo.subtitle2" Class="mb-2">Ideal Standard &copy; 2023</MudText>
-        <MudText Align="Align.Center" Typo="Typo.caption" Class="mb-2">Developed by Ryan Amos</MudText>
+        <MudText Align="Align.Center" Typo="Typo.caption" Class="mb-2">Ideal Standard &copy; 2023</MudText>
         <MudDivider Class="mb-1" FlexItem="true" Light="true" DividerType="DividerType.FullWidth"/>
         <MudElement Class="d-inline-flex align-center mx-2 mb-1">
             <MudElement>
-                <MudText Typo="Typo.caption" Class="mud-text-disabled">ISI Patch</MudText>
+                <MudTooltip Text="Developed by Ryan Amos" Arrow="true" Placement="Placement.Right">
+                    <MudText Typo="Typo.caption" Class="mud-text-disabled">ISI Patch</MudText>
+                </MudTooltip>
             </MudElement>
             <MudSpacer/>
             <MudElement>

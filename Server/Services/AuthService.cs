@@ -2,6 +2,7 @@
 using ISIvanti.Server.Dtos;
 using ISIvanti.Server.Enums;
 using ISIvanti.Server.Interfaces;
+using ISIvanti.Server.Utilities;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Account;
 using Microsoft.AspNetCore.Authentication;
@@ -13,20 +14,24 @@ public class AuthService : IAuthService
 {
     private readonly UserManager _userManager;
     private readonly ApiClient _apiClient;
+    private readonly Configuration _config;
 
-    public AuthService(UserManager userManager, ApiClient apiClient)
+    public AuthService(UserManager userManager, ApiClient apiClient, Configuration config)
     {
         _userManager = userManager;
         _apiClient = apiClient;
+        _config = config;
     }
 
     public async Task<(ControllerEnums.ReturnState, ClaimsIdentity, AuthenticationProperties)> LoginAsync(LoginRequestDto loginRequest)
     {
+        var userRole = _config.Administrators.Contains(loginRequest.UserName.ToLower()) ? WebRole.Administrator : WebRole.User;
         var user = new UserManagerDto
         {
             Identity = Guid.NewGuid(),
             UserName = loginRequest.UserName,
             Password = loginRequest.Password,
+            Role = userRole,
             Created = DateTimeOffset.UtcNow
         };
         _userManager.AddUser(user); // The memory of this object can be abused. But, since it's internal I don't think it matters.
@@ -42,6 +47,7 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new(ClaimTypes.Name, user.UserName),
+            new(ClaimTypes.Role, user.Role.ToString()),
             new(ClaimTypes.NameIdentifier, user.Identity.ToString()),
         };
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -57,7 +63,8 @@ public class AuthService : IAuthService
         return new UserDto
         {
             Identity = user.Identity,
-            UserName = user.UserName
+            UserName = user.UserName,
+            Role = user.Role.ToString()
         };
     }
 }

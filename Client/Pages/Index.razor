@@ -74,7 +74,7 @@
                 <MudPaper Class="pa-4">
                     <MudElement>
                         <MudText Align="Align.Center" Typo="Typo.h4">Login</MudText>
-                        <MudTextField @bind-Value="_login.UserName"
+                        <MudTextField @bind-Value="_userName"
                                       AutoFocus="true"
                                       Immediate="true"
                                       Label="Username"
@@ -83,7 +83,7 @@
                                       Adornment="Adornment.End"
                                       @onkeypress="OnKeyPress"
                                       AdornmentColor="Color.Info"/>
-                        <MudTextField @bind-Value="_login.Password"
+                        <MudTextField @bind-Value="_password"
                                       AutoFocus="false"
                                       Immediate="true"
                                       Label="Password"
@@ -128,9 +128,12 @@
     private string[]? _xAxisLabels;
     private bool _showChart;
 
+    // Login
+    private string _userName = string.Empty;
+    private string _password = string.Empty;
+
     // Normals
     private string? _error;
-    private LoginRequestDto _login = new();
     private SentinelStatisticsDto? _sentinelStatistics;
     private IvantiStatisticsDto? _ivantiStatistics;
     private bool _processing;
@@ -193,20 +196,28 @@
     {
         _error = null;
 
-        if (string.IsNullOrEmpty(_login.UserName) || _login.UserName.Length < 3 || _login.Password?.Length is < 3)
+
+        if (string.IsNullOrEmpty(_userName) || _userName.Length < 3 || _password.Length is < 3)
         {
             _error = "Invalid username/password length";
             return;
         }
 
-        if (_login.UserName.Contains("@") || _login.UserName.Contains("\\"))
+        if (_userName.Contains("@") || _userName.Contains("\\"))
         {
             _error = "Username cannot contain @ or \\. \nDo not provide domain or server!";
             return;
         }
 
         _processing = true;
-        var message = await ApiLogic.LoginAsync(_login);
+
+        var userLogin = new LoginRequestDto
+        {
+            UserName = _userName,
+            Password = _password
+        };
+
+        var message = await ApiLogic.LoginAsync(userLogin);
         if (message == "Success")
         {
             await LocalStorageService.SetItemAsStringAsync("IsAuthenticated", "true");

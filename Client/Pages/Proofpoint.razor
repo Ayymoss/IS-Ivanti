@@ -1,0 +1,98 @@
+﻿@page "/Proofpoint"
+@using MudBlazor.Extensions
+@inject ProofpointService ProofpointService
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>Proofpoint | ISI Patch</PageTitle>
+
+<MudStack Spacing="0">
+    <MudPaper Elevation="2" Class="d-flex flex-row align-center pa-4 rounded-b-0">
+        <MudText Typo="Typo.h4"
+                 Align="Align.Center"
+                 Class="mud-text-secondary mr-4">
+             Last 2 Months Isolated URLs (@_totalItems)
+        </MudText>
+        <MudSpacer/>
+    </MudPaper>
+    <MudTable Striped="true"
+              HeaderClass="mud-theme-info"
+              Outlined="false"
+              Bordered="false"
+              Loading="_loading"
+              LoadingProgressColor="Color.Info"
+              ServerData="@(new Func<TableState, Task<TableData<ProofpointContextDto>>>(ServerReload))"
+              Elevation="2"
+              Dense="true"
+              @ref="_table">
+        <HeaderContent>
+            <MudTh Class="py-2">
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">User</MudText>
+            </MudTh>
+            <MudTh>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">Disposition</MudText>
+            </MudTh>
+            <MudTh>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">Classification</MudText>
+            </MudTh>
+            <MudTh>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">Categories</MudText>
+            </MudTh>
+            <MudTh>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">Date</MudText>
+            </MudTh>
+            <MudTh>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">URL</MudText>
+            </MudTh>
+            <MudTh>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">Region</MudText>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.UserName</MudText>
+            </MudTd>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.Disposition</MudText>
+            </MudTd>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.Classification</MudText>
+            </MudTd>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@string.Join(", ", context.Categories)</MudText>
+            </MudTd>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.Date.ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+            </MudTd>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.Url</MudText>
+            </MudTd>
+            <MudTd>
+                <MudText Style="white-space: nowrap;" Typo="Typo.body2">@context.Region</MudText>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Class="my-4">No isolation events found recently</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+    </MudTable>
+</MudStack>
+
+@code {
+    private MudTable<ProofpointContextDto>? _table;
+    private IEnumerable<ProofpointContextDto>? _pagedData;
+    private int _totalItems;
+    private bool _loading = true;
+
+    private async Task<TableData<ProofpointContextDto>> ServerReload(TableState state)
+    {
+        var result = await ProofpointService.GetProofpointIsolatedUrlsAsync() ?? new List<ProofpointContextDto>();
+        _pagedData = result;
+        _totalItems = result.Count;
+        _loading = false;
+        StateHasChanged();
+        return new TableData<ProofpointContextDto> {TotalItems = _totalItems, Items = _pagedData};
+    }
+
+}

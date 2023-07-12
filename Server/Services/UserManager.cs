@@ -32,4 +32,5 @@ public class UserManager
     }
 
     public bool UserExists(Guid identity) => _users.Any(x => x.Identity == identity);
+    public bool IsUserInGroup(Guid identity, WebRole role) => _users.Any(x => x.Identity == identity && x.Role == role);
 }

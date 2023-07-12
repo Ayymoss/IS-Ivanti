@@ -2,6 +2,7 @@
 
 public record UserDto
 {
-    public Guid Identity { get; set; }
-    public string UserName { get; set; } = null!;
+    public required Guid Identity { get; set; }
+    public required string UserName { get; set; }
+    public required string Role { get; set; }
 }

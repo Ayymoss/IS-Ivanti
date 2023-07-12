@@ -6,6 +6,7 @@ using ISIvanti.Server.Models;
 using ISIvanti.Server.Models.IvantiModels;
 using ISIvanti.Server.Models.LocalModels;
 using ISIvanti.Server.Services.Ivanti;
+using ISIvanti.Server.Utilities;
 using ISIvanti.Shared.Dtos;
 using ISIvanti.Shared.Dtos.Ivanti;
 using ISIvanti.Shared.Enums;
@@ -23,19 +24,22 @@ public class AgentService : IAgentService
     private readonly LocalDataContext _localContext;
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly Configuration _config;
 
     public AgentService(IvantiDataContext ivantiContext, LocalDataContext localContext, IBackgroundTaskQueue taskQueue,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory, Configuration config)
     {
         _ivantiContext = ivantiContext;
         _localContext = localContext;
         _taskQueue = taskQueue;
         _serviceScopeFactory = serviceScopeFactory;
+        _config = config;
     }
 
     public async Task<AgentContextDto> AgentPaginationAsync(PaginationDto pagination)
     {
         var query = _ivantiContext.ManagedMachines
+            .Where(x => x.LastUpdated > DateTimeOffset.UtcNow.AddDays(-_config.IvantiQueryInDays))
             .Select(machine => new AgentDto
             {
                 MachineId = machine.MmKey,

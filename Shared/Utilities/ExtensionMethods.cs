@@ -16,6 +16,7 @@ public static class ExtensionMethods
 
         if (!response.IsSuccessStatusCode) return null;
         var json = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"{typeof(TResponse)}: {response.Headers.Server} {response.StatusCode} {response.ReasonPhrase} {json}");
         return string.IsNullOrEmpty(json) ? null : JsonSerializer.Deserialize<TResponse>(json, jsonSerializerOptions);
     }
 

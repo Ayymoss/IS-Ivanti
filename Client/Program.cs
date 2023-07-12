@@ -26,6 +26,7 @@ builder.Services.AddScoped<CookieHandler>();
 builder.Services.AddSingleton<AgentService>();
 builder.Services.AddSingleton<SystemService>();
 builder.Services.AddSingleton<SentinelService>();
+builder.Services.AddSingleton<ProofpointService>();
 
 builder.Services.AddMudServices(config =>
 {
